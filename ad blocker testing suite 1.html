@@ -1,0 +1,843 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ad Blocker Testing Suite - Professional Edition</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #667eea;
+            --secondary: #764ba2;
+            --accent: #f093fb;
+            --dark: #1a1a2e;
+            --light: #eee;
+            --success: #4ade80;
+            --warning: #fbbf24;
+            --danger: #ef4444;
+            --glass: rgba(255, 255, 255, 0.1);
+            --shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            min-height: 100vh;
+            color: white;
+            overflow-x: hidden;
+        }
+
+        .container {
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            min-height: 100vh;
+            gap: 20px;
+            padding: 20px;
+        }
+
+        .control-panel {
+            background: var(--glass);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 25px;
+            height: fit-content;
+            box-shadow: var(--shadow);
+            position: sticky;
+            top: 20px;
+        }
+
+        .panel-header {
+            font-size: 1.5em;
+            font-weight: 700;
+            margin-bottom: 20px;
+            text-align: center;
+            background: linear-gradient(45deg, var(--accent), white);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .rule-category {
+            margin-bottom: 25px;
+        }
+
+        .category-title {
+            font-size: 1.1em;
+            font-weight: 600;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .category-icon {
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
+        }
+
+        .rule-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            padding: 8px 12px;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.05);
+            transition: all 0.3s ease;
+        }
+
+        .rule-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateX(5px);
+        }
+
+        .rule-label {
+            font-size: 0.9em;
+            flex-grow: 1;
+        }
+
+        .toggle-switch {
+            position: relative;
+            width: 50px;
+            height: 24px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .toggle-switch.active {
+            background: var(--success);
+            box-shadow: 0 0 20px rgba(74, 222, 128, 0.5);
+        }
+
+        .toggle-slider {
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 20px;
+            height: 20px;
+            background: white;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .toggle-switch.active .toggle-slider {
+            transform: translateX(26px);
+        }
+
+        .test-site {
+            background: var(--glass);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            overflow: hidden;
+            box-shadow: var(--shadow);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .site-header {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px 25px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .site-title {
+            font-size: 1.3em;
+            font-weight: 600;
+        }
+
+        .detection-status {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .status-indicator {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.8em;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .blocked {
+            background: var(--danger);
+            color: white;
+        }
+
+        .allowed {
+            background: var(--success);
+            color: white;
+        }
+
+        .site-content {
+            padding: 25px;
+            flex-grow: 1;
+            position: relative;
+        }
+
+        .content-section {
+            margin-bottom: 30px;
+        }
+
+        .section-title {
+            font-size: 1.4em;
+            font-weight: 600;
+            margin-bottom: 15px;
+        }
+
+        .article-content {
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+
+        /* Ad Elements */
+        .banner-ad {
+            width: 100%;
+            height: 120px;
+            background: linear-gradient(45deg, #ff6b6b, #feca57);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            margin: 20px 0;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .banner-ad::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            animation: shimmer 2s infinite;
+        }
+
+        @keyframes shimmer {
+            0% { left: -100%; }
+            100% { left: 100%; }
+        }
+
+        .sidebar-ad {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 200px;
+            height: 300px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .popup-ad {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 400px;
+            height: 250px;
+            background: linear-gradient(45deg, #ff9a9e, #fecfef);
+            border-radius: 15px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            z-index: 1000;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+            color: #333;
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            background: none;
+            border: none;
+            font-size: 1.5em;
+            cursor: pointer;
+            color: #333;
+        }
+
+        .video-ad {
+            width: 100%;
+            height: 200px;
+            background: linear-gradient(45deg, #12c2e9, #c471ed, #f64f59);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            margin: 20px 0;
+            position: relative;
+        }
+
+        .video-overlay {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 0.9em;
+        }
+
+        .social-ad {
+            background: rgba(59, 130, 246, 0.1);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            border-radius: 8px;
+            padding: 15px;
+            margin: 15px 0;
+        }
+
+        .tracking-pixel {
+            width: 1px;
+            height: 1px;
+            background: transparent;
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+
+        /* Blocked state styles */
+        .blocked-element {
+            opacity: 0.3;
+            filter: grayscale(1);
+            transform: scale(0.95);
+            border: 2px dashed var(--danger);
+            position: relative;
+        }
+
+        .blocked-element::after {
+            content: '🚫 BLOCKED';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: var(--danger);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 0.8em;
+            z-index: 10;
+        }
+
+        .analytics-panel {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: var(--glass);
+            backdrop-filter: blur(20px);
+            border-radius: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 20px;
+            min-width: 250px;
+            box-shadow: var(--shadow);
+        }
+
+        .analytics-title {
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .stat-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 0.9em;
+        }
+
+        .stat-value {
+            font-weight: bold;
+            color: var(--accent);
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+            
+            .control-panel {
+                position: relative;
+                top: 0;
+            }
+            
+            .sidebar-ad {
+                position: static;
+                width: 100%;
+                margin: 20px 0;
+            }
+        }
+
+        .performance-viz {
+            margin-top: 20px;
+            height: 100px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            padding: 10px;
+            position: relative;
+        }
+
+        .performance-bar {
+            height: 20px;
+            background: linear-gradient(90deg, var(--success), var(--warning), var(--danger));
+            border-radius: 10px;
+            margin-top: 10px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .performance-indicator {
+            position: absolute;
+            top: 0;
+            left: 75%;
+            width: 4px;
+            height: 100%;
+            background: white;
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .fade-out {
+            animation: fadeOut 0.5s ease-out forwards;
+        }
+
+        @keyframes fadeOut {
+            to {
+                opacity: 0;
+                transform: scale(0.8);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="control-panel">
+            <div class="panel-header">🛡️ Ad Block Controls</div>
+            
+            <div class="rule-category">
+                <div class="category-title">
+                    <div class="category-icon" style="background: #ff6b6b;"></div>
+                    Banner Ads
+                </div>
+                <div class="rule-item">
+                    <span class="rule-label">Block Banner Ads</span>
+                    <div class="toggle-switch" data-rule="banner-ads">
+                        <div class="toggle-slider"></div>
+                    </div>
+                </div>
+                <div class="rule-item">
+                    <span class="rule-label">Block Video Ads</span>
+                    <div class="toggle-switch" data-rule="video-ads">
+                        <div class="toggle-slider"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="rule-category">
+                <div class="category-title">
+                    <div class="category-icon" style="background: #4ecdc4;"></div>
+                    Popups & Overlays
+                </div>
+                <div class="rule-item">
+                    <span class="rule-label">Block Popups</span>
+                    <div class="toggle-switch" data-rule="popup-ads">
+                        <div class="toggle-slider"></div>
+                    </div>
+                </div>
+                <div class="rule-item">
+                    <span class="rule-label">Block Sidebar Ads</span>
+                    <div class="toggle-switch" data-rule="sidebar-ads">
+                        <div class="toggle-slider"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="rule-category">
+                <div class="category-title">
+                    <div class="category-icon" style="background: #a55eea;"></div>
+                    Social & Tracking
+                </div>
+                <div class="rule-item">
+                    <span class="rule-label">Block Social Ads</span>
+                    <div class="toggle-switch" data-rule="social-ads">
+                        <div class="toggle-slider"></div>
+                    </div>
+                </div>
+                <div class="rule-item">
+                    <span class="rule-label">Block Tracking</span>
+                    <div class="toggle-switch" data-rule="tracking">
+                        <div class="toggle-slider"></div>
+                    </div>
+                </div>
+                <div class="rule-item">
+                    <span class="rule-label">Anti-Adblock</span>
+                    <div class="toggle-switch" data-rule="anti-adblock">
+                        <div class="toggle-slider"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="performance-viz">
+                <div style="font-size: 0.9em; font-weight: 600;">Page Performance</div>
+                <div class="performance-bar">
+                    <div class="performance-indicator"></div>
+                </div>
+                <div style="font-size: 0.8em; margin-top: 5px; opacity: 0.8;">
+                    Load Time: <span id="load-time">2.3s</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="test-site">
+            <div class="site-header">
+                <div class="site-title">📰 TechNews Pro</div>
+                <div class="detection-status">
+                    <div class="status-indicator" id="status-indicator">Analyzing...</div>
+                    <div style="font-size: 0.8em;">
+                        Blocked: <span id="blocked-count">0</span> | 
+                        Active: <span id="active-count">7</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="site-content">
+                <div class="content-section">
+                    <div class="section-title">Breaking: New Web Technologies Transform Digital Advertising</div>
+                    <div class="article-content">
+                        In a rapidly evolving digital landscape, advertisers are leveraging cutting-edge technologies to create more engaging and targeted campaigns. Industry experts predict that AI-driven personalization will reshape how brands connect with consumers across various platforms and devices.
+                    </div>
+                </div>
+
+                <div class="banner-ad" data-ad-type="banner">
+                    🎯 PREMIUM BANNER AD - Click for Amazing Deals!
+                </div>
+
+                <div class="content-section">
+                    <div class="section-title">The Future of Ad Blocking Technology</div>
+                    <div class="article-content">
+                        As ad blocking technology becomes more sophisticated, the battle between advertisers and privacy-focused users intensifies. New machine learning algorithms can now detect and adapt to various blocking patterns, creating a dynamic ecosystem of innovation on both sides.
+                    </div>
+                </div>
+
+                <div class="video-ad" data-ad-type="video">
+                    ▶️ VIDEO ADVERTISEMENT
+                    <div class="video-overlay">Sponsored Content</div>
+                </div>
+
+                <div class="social-ad" data-ad-type="social">
+                    <strong>🔥 Promoted Post</strong><br>
+                    Discover the latest trending products with our AI-powered recommendation engine. Join millions of satisfied customers today!
+                </div>
+
+                <div class="sidebar-ad" data-ad-type="sidebar">
+                    📱 SIDEBAR AD<br>
+                    Special Offer!
+                </div>
+
+                <div class="content-section">
+                    <div class="article-content">
+                        The intersection of privacy and advertising continues to drive innovation in the tech industry. Companies are exploring new models that balance user experience with sustainable revenue streams, leading to more transparent and user-friendly advertising practices.
+                    </div>
+                </div>
+
+                <div class="tracking-pixel" data-ad-type="tracking"></div>
+            </div>
+        </div>
+
+        <div class="popup-ad hidden" data-ad-type="popup">
+            <button class="close-btn" onclick="closePopup()">&times;</button>
+            <div>🎉 SPECIAL OFFER!</div>
+            <div style="margin-top: 10px; font-size: 0.9em;">
+                Limited time deal - 50% off premium features!
+            </div>
+        </div>
+    </div>
+
+    <div class="analytics-panel">
+        <div class="analytics-title">📊 Real-time Analytics</div>
+        <div class="stat-item">
+            <span>Ads Detected:</span>
+            <span class="stat-value" id="ads-detected">7</span>
+        </div>
+        <div class="stat-item">
+            <span>Requests Blocked:</span>
+            <span class="stat-value" id="requests-blocked">0</span>
+        </div>
+        <div class="stat-item">
+            <span>Data Saved:</span>
+            <span class="stat-value" id="data-saved">0 KB</span>
+        </div>
+        <div class="stat-item">
+            <span>Privacy Score:</span>
+            <span class="stat-value" id="privacy-score">0%</span>
+        </div>
+    </div>
+
+    <script>
+        class AdBlockerTestSuite {
+            constructor() {
+                this.rules = {
+                    'banner-ads': false,
+                    'video-ads': false,
+                    'popup-ads': false,
+                    'sidebar-ads': false,
+                    'social-ads': false,
+                    'tracking': false,
+                    'anti-adblock': false
+                };
+                
+                this.adElements = {
+                    'banner-ads': document.querySelectorAll('[data-ad-type="banner"]'),
+                    'video-ads': document.querySelectorAll('[data-ad-type="video"]'),
+                    'popup-ads': document.querySelectorAll('[data-ad-type="popup"]'),
+                    'sidebar-ads': document.querySelectorAll('[data-ad-type="sidebar"]'),
+                    'social-ads': document.querySelectorAll('[data-ad-type="social"]'),
+                    'tracking': document.querySelectorAll('[data-ad-type="tracking"]')
+                };
+
+                this.analytics = {
+                    adsDetected: 7,
+                    requestsBlocked: 0,
+                    dataSaved: 0,
+                    privacyScore: 0
+                };
+
+                this.loadTimes = [2.3, 1.8, 1.5, 1.2, 1.0, 0.8, 0.6];
+                this.popupShown = false;
+
+                this.init();
+            }
+
+            init() {
+                this.setupToggleListeners();
+                this.updateAnalytics();
+                this.startPopupTimer();
+                this.simulateRealTimeUpdates();
+            }
+
+            setupToggleListeners() {
+                document.querySelectorAll('.toggle-switch').forEach(toggle => {
+                    toggle.addEventListener('click', (e) => {
+                        const rule = e.currentTarget.dataset.rule;
+                        this.toggleRule(rule, toggle);
+                    });
+                });
+            }
+
+            toggleRule(rule, toggleElement) {
+                this.rules[rule] = !this.rules[rule];
+                
+                // Visual feedback
+                toggleElement.classList.toggle('active', this.rules[rule]);
+                
+                // Apply blocking effect
+                this.applyBlocking(rule);
+                
+                // Update analytics
+                this.updateAnalytics();
+                
+                // Special handling for anti-adblock
+                if (rule === 'anti-adblock' && this.rules[rule]) {
+                    this.triggerAntiAdblockResponse();
+                }
+
+                // Update performance indicator
+                this.updatePerformance();
+            }
+
+            applyBlocking(rule) {
+                const elements = this.adElements[rule];
+                const isBlocked = this.rules[rule];
+                
+                if (elements) {
+                    elements.forEach(element => {
+                        if (isBlocked) {
+                            element.classList.add('blocked-element');
+                            if (rule === 'popup-ads') {
+                                element.classList.add('hidden');
+                            }
+                        } else {
+                            element.classList.remove('blocked-element');
+                            if (rule === 'popup-ads') {
+                                element.classList.remove('hidden');
+                            }
+                        }
+                    });
+                }
+            }
+
+            updateAnalytics() {
+                const blockedCount = Object.values(this.rules).filter(Boolean).length;
+                const activeCount = this.analytics.adsDetected - blockedCount;
+                
+                this.analytics.requestsBlocked = blockedCount * 12; // Simulated
+                this.analytics.dataSaved = blockedCount * 45; // KB
+                this.analytics.privacyScore = Math.min(100, blockedCount * 15);
+
+                // Update DOM
+                document.getElementById('blocked-count').textContent = blockedCount;
+                document.getElementById('active-count').textContent = activeCount;
+                document.getElementById('ads-detected').textContent = this.analytics.adsDetected;
+                document.getElementById('requests-blocked').textContent = this.analytics.requestsBlocked;
+                document.getElementById('data-saved').textContent = `${this.analytics.dataSaved} KB`;
+                document.getElementById('privacy-score').textContent = `${this.analytics.privacyScore}%`;
+
+                // Update status indicator
+                const statusIndicator = document.getElementById('status-indicator');
+                if (blockedCount === 0) {
+                    statusIndicator.textContent = 'No Protection';
+                    statusIndicator.className = 'status-indicator allowed';
+                } else if (blockedCount < 4) {
+                    statusIndicator.textContent = 'Partial Block';
+                    statusIndicator.className = 'status-indicator';
+                    statusIndicator.style.background = '#fbbf24';
+                } else {
+                    statusIndicator.textContent = 'Full Protection';
+                    statusIndicator.className = 'status-indicator blocked';
+                }
+            }
+
+            updatePerformance() {
+                const blockedCount = Object.values(this.rules).filter(Boolean).length;
+                const loadTime = this.loadTimes[Math.min(blockedCount, this.loadTimes.length - 1)];
+                
+                document.getElementById('load-time').textContent = `${loadTime}s`;
+                
+                // Update performance indicator position
+                const indicator = document.querySelector('.performance-indicator');
+                const percentage = Math.max(10, 100 - (blockedCount * 15));
+                indicator.style.left = `${percentage}%`;
+            }
+
+            startPopupTimer() {
+                if (!this.popupShown) {
+                    setTimeout(() => {
+                        if (!this.rules['popup-ads'] && !this.popupShown) {
+                            this.showPopup();
+                        }
+                    }, 5000);
+                }
+            }
+
+            showPopup() {
+                const popup = document.querySelector('[data-ad-type="popup"]');
+                popup.classList.remove('hidden');
+                this.popupShown = true;
+            }
+
+            triggerAntiAdblockResponse() {
+                // Simulate anti-adblock detection
+                setTimeout(() => {
+                    const overlay = document.createElement('div');
+                    overlay.style.cssText = `
+                        position: fixed;
+                        top: 0;
+                        left: 0;
+                        width: 100%;
+                        height: 100%;
+                        background: rgba(0, 0, 0, 0.9);
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        z-index: 10000;
+                        color: white;
+                        font-size: 1.2em;
+                        text-align: center;
+                    `;
+                    overlay.innerHTML = `
+                        <div>
+                            <h2>⚠️ Ad Blocker Detected</h2>
+                            <p style="margin: 20px 0;">Please disable your ad blocker to continue</p>
+                            <button onclick="this.parentElement.parentElement.remove()" 
+                                    style="padding: 10px 20px; background: #667eea; border: none; 
+                                           border-radius: 5px; color: white; cursor: pointer;">
+                                Continue Anyway
+                            </button>
+                        </div>
+                    `;
+                    document.body.appendChild(overlay);
+                }, 1000);
+            }
+
+            simulateRealTimeUpdates() {
+                setInterval(() => {
+                    // Simulate dynamic ad loading attempts
+                    const randomRule = Object.keys(this.rules)[Math.floor(Math.random() * Object.keys(this.rules).length)];
+                    if (this.rules[randomRule]) {
+                        this.analytics.requestsBlocked += Math.floor(Math.random() * 3);
+                        document.getElementById('requests-blocked').textContent = this.analytics.requestsBlocked;
+                    }
+                }, 3000);
+            }
+        }
+
+        // Initialize the test suite
+        const testSuite = new AdBlockerTestSuite();
+
+        // Global functions for popup management
+        function closePopup() {
+            document.querySelector('[data-ad-type="popup"]').classList.add('hidden');
+        }
+
+        // Performance monitoring
+        window.addEventListener('load', () => {
+            const navigation = performance.getEntriesByType('navigation')[0];
+            if (navigation) {
+                const actualLoadTime = (navigation.loadEventEnd - navigation.loadEventStart) / 1000;
+                if (actualLoadTime > 0) {
+                    document.getElementById('load-time').textContent = `${actualLoadTime.toFixed(1)}s`;
+                }
+            }
+        });
+
+        // Add some interactive animations
+        document.querySelectorAll('.banner-ad, .video-ad, .sidebar-ad').forEach(ad => {
+            ad.addEventListener('mouseenter', () => {
+                if (!ad.classList.contains('blocked-element')) {
+                    ad.style.transform = 'scale(1.02)';
+                    ad.style.transition = 'transform 0.3s ease';
+                }
+            });
+            
+            ad.addEventListener('mouseleave', () => {
+                ad.style.transform = 'scale(1)';
+            });
+        });
+    </script>
+</body>
+</html>
