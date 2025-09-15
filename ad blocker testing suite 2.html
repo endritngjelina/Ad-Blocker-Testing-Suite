@@ -1,0 +1,1041 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ad Blocker Testing Suite</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background-attachment: fixed;
+            min-height: 100vh;
+            color: #333;
+            overflow-x: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url('data:image/svg+xml,<svg width="60" height="60" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"><g fill="none" fill-rule="evenodd"><g fill="%23ffffff" fill-opacity="0.03"><circle cx="30" cy="30" r="2"/></g></svg>');
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+            animation: slideDown 0.8s ease-out;
+            position: relative;
+        }
+
+        .header::after {
+            content: '';
+            position: absolute;
+            bottom: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100px;
+            height: 3px;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.6), transparent);
+            border-radius: 2px;
+        }
+
+        .header h1 {
+            font-size: 2.8rem;
+            font-weight: 800;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            background: linear-gradient(45deg, #ffffff, #f0f8ff);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            position: relative;
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        .main-grid {
+            display: grid;
+            grid-template-columns: 350px 1fr;
+            gap: 25px;
+            align-items: start;
+        }
+
+        .control-panel {
+            background: rgba(255,255,255,0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.15), 
+                        inset 0 1px 0 rgba(255,255,255,0.8);
+            position: sticky;
+            top: 20px;
+            animation: slideLeft 0.8s ease-out;
+            border: 1px solid rgba(255,255,255,0.2);
+            transform: translateZ(0);
+            will-change: transform;
+        }
+
+        .control-panel::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.8), transparent);
+        }
+
+        .control-section {
+            margin-bottom: 25px;
+        }
+
+        .control-section h3 {
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-bottom: 15px;
+            color: #2d3748;
+            border-bottom: 3px solid transparent;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            background-size: 100% 3px;
+            background-position: 0 100%;
+            background-repeat: no-repeat;
+            padding-bottom: 8px;
+            position: relative;
+        }
+
+        .control-section h3::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            bottom: -3px;
+            width: 30%;
+            height: 3px;
+            background: linear-gradient(90deg, #48bb78, #38a169);
+            transition: width 0.3s ease;
+        }
+
+        .rule-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 12px;
+            padding: 12px 15px;
+            background: linear-gradient(135deg, #f8fafc, #edf2f7);
+            border-radius: 12px;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 1px solid rgba(226, 232, 240, 0.6);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .rule-item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+            transition: left 0.6s ease;
+        }
+
+        .rule-item:hover {
+            background: linear-gradient(135deg, #edf2f7, #e2e8f0);
+            transform: translateY(-2px) scale(1.02);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            border-color: rgba(102, 126, 234, 0.3);
+        }
+
+        .rule-item:hover::before {
+            left: 100%;
+        }
+
+        .rule-item:active {
+            transform: translateY(0) scale(1);
+        }
+
+        .rule-toggle {
+            position: relative;
+            width: 52px;
+            height: 28px;
+            background: linear-gradient(135deg, #cbd5e0, #a0aec0);
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.1),
+                        0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .rule-toggle:hover {
+            transform: scale(1.05);
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.1),
+                        0 4px 12px rgba(0,0,0,0.15);
+        }
+
+        .rule-toggle.active {
+            background: linear-gradient(135deg, #48bb78, #38a169);
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.1),
+                        0 2px 8px rgba(72, 187, 120, 0.3);
+        }
+
+        .rule-toggle::before {
+            content: '';
+            position: absolute;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #ffffff, #f7fafc);
+            top: 2px;
+            left: 2px;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+        }
+
+        .rule-toggle.active::before {
+            transform: translateX(24px);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+        }
+
+        .rule-toggle::after {
+            content: '';
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.8), transparent);
+            top: 4px;
+            left: 4px;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            opacity: 0.6;
+        }
+
+        .rule-toggle.active::after {
+            transform: translateX(24px);
+        }
+
+        .rule-label {
+            font-size: 0.9rem;
+            font-weight: 600;
+            flex: 1;
+            margin-right: 10px;
+            color: #2d3748;
+            transition: color 0.3s ease;
+        }
+
+        .rule-item:hover .rule-label {
+            color: #1a202c;
+        }
+
+        .stats-section {
+            background: linear-gradient(135deg, #f8fafc, #edf2f7);
+            border-radius: 15px;
+            padding: 20px;
+            margin-top: 20px;
+            border: 1px solid rgba(226, 232, 240, 0.6);
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.8),
+                        0 4px 12px rgba(0,0,0,0.05);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stats-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, #667eea, #764ba2, #48bb78);
+        }
+
+        .stat-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            font-size: 0.9rem;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(226, 232, 240, 0.5);
+            transition: all 0.3s ease;
+        }
+
+        .stat-item:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+        }
+
+        .stat-item:hover {
+            background: rgba(255,255,255,0.5);
+            margin: 0 -10px 12px -10px;
+            padding: 8px 10px;
+            border-radius: 8px;
+        }
+
+        .stat-item:last-child:hover {
+            margin-bottom: 0;
+        }
+
+        .stat-value {
+            font-weight: 700;
+            color: #2d3748;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .stat-item:hover .stat-value {
+            transform: scale(1.1);
+        }
+
+        .test-site {
+            background: rgba(255,255,255,0.98);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.15),
+                        inset 0 1px 0 rgba(255,255,255,0.8);
+            overflow: hidden;
+            animation: slideRight 0.8s ease-out;
+            min-height: 800px;
+            border: 1px solid rgba(255,255,255,0.2);
+            position: relative;
+        }
+
+        .test-site::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+        }
+
+        .site-header {
+            background: linear-gradient(90deg, #4299e1, #667eea);
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .site-content {
+            padding: 25px;
+            position: relative;
+        }
+
+        /* Enhanced Ad Elements */
+        .banner-ad {
+            width: 100%;
+            height: 120px;
+            background: linear-gradient(45deg, #ff6b6b, #feca57);
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            color: white;
+            margin: 20px 0;
+            transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(255, 107, 107, 0.3);
+            border: 2px solid rgba(255,255,255,0.2);
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            font-size: 1.1rem;
+            letter-spacing: 0.5px;
+        }
+
+        .banner-ad:hover {
+            transform: translateY(-5px) scale(1.02);
+            box-shadow: 0 15px 40px rgba(255, 107, 107, 0.4);
+        }
+
+        .banner-ad::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(255,255,255,0.2), transparent);
+            animation: shine 2s infinite;
+        }
+
+        .sidebar-ad {
+            width: 200px;
+            height: 300px;
+            background: linear-gradient(135deg, #a8edea, #fed6e3);
+            border-radius: 10px;
+            float: right;
+            margin: 0 0 20px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: #333;
+            transition: all 0.3s ease;
+        }
+
+        .popup-ad {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 400px;
+            height: 250px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border-radius: 15px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            z-index: 1000;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+            transition: all 0.3s ease;
+        }
+
+        .popup-close {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .text-ad {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 15px 0;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+        }
+
+        .video-ad {
+            width: 100%;
+            height: 200px;
+            background: linear-gradient(45deg, #2d3748, #4a5568);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            margin: 20px 0;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .video-ad::after {
+            content: '▶';
+            position: absolute;
+            font-size: 3rem;
+            opacity: 0.3;
+        }
+
+        /* Blocked states */
+        .blocked {
+            opacity: 0;
+            transform: scale(0.8) rotateX(90deg);
+            pointer-events: none;
+            height: 0 !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            overflow: hidden;
+            transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .ad-element {
+            transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            transform-origin: center;
+        }
+
+        .content-text {
+            line-height: 1.8;
+            margin-bottom: 20px;
+            text-align: justify;
+        }
+
+        .blocked-indicator {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: linear-gradient(135deg, #e53e3e, #c53030);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 30px;
+            font-weight: 700;
+            font-size: 0.9rem;
+            transform: translateY(-100px) rotate(-5deg);
+            transition: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            z-index: 1001;
+            box-shadow: 0 10px 30px rgba(229, 62, 62, 0.3);
+            border: 2px solid rgba(255,255,255,0.2);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .blocked-indicator.show {
+            transform: translateY(0) rotate(0deg);
+            animation: bounce 0.6s ease-out;
+        }
+
+        @keyframes bounce {
+            0% { transform: translateY(0) scale(1); }
+            50% { transform: translateY(-10px) scale(1.1); }
+            100% { transform: translateY(0) scale(1); }
+        }
+
+        .performance-meter {
+            background: linear-gradient(135deg, #f8fafc, #edf2f7);
+            border-radius: 15px;
+            padding: 20px;
+            margin-top: 15px;
+            border: 1px solid rgba(226, 232, 240, 0.6);
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.8),
+                        0 4px 12px rgba(0,0,0,0.05);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .performance-meter::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, #48bb78, #38a169);
+        }
+
+        .meter-bar {
+            height: 12px;
+            background: linear-gradient(135deg, #e2e8f0, #cbd5e0);
+            border-radius: 8px;
+            overflow: hidden;
+            margin: 12px 0 8px 0;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+            position: relative;
+        }
+
+        .meter-bar::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.8), transparent);
+        }
+
+        .meter-fill {
+            height: 100%;
+            background: linear-gradient(135deg, #48bb78, #38a169);
+            transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+            border-radius: 8px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .meter-fill::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+            animation: shimmer 2s infinite;
+        }
+
+        @keyframes shimmer {
+            0% { left: -100%; }
+            100% { left: 100%; }
+        }
+
+        .reset-btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            border-radius: 15px;
+            font-weight: 700;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            margin-top: 20px;
+            position: relative;
+            overflow: hidden;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .reset-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .reset-btn:hover {
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+            background: linear-gradient(135deg, #5a67d8, #6b46c1);
+        }
+
+        .reset-btn:hover::before {
+            left: 100%;
+        }
+
+        .reset-btn:active {
+            transform: translateY(-1px) scale(1);
+            transition: all 0.1s ease;
+        }
+
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes slideLeft {
+            from { opacity: 0; transform: translateX(-30px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        @keyframes slideRight {
+            from { opacity: 0; transform: translateX(30px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        @keyframes shine {
+            0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
+            100% { transform: translateX(100%) translateY(100%) rotate(45deg); }
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .floating-ad {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 250px;
+            height: 150px;
+            background: linear-gradient(45deg, #ff9a9e, #fad0c4);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: #333;
+            z-index: 999;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            animation: pulse 3s infinite;
+            transition: all 0.3s ease;
+        }
+
+        @media (max-width: 768px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            
+            .control-panel {
+                position: relative;
+                top: auto;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🛡️ Ad Blocker Testing Suite</h1>
+            <p>Professional-grade ad blocking pattern analysis and visualization</p>
+        </div>
+
+        <div class="main-grid">
+            <div class="control-panel">
+                <div class="control-section">
+                    <h3>🎯 Blocking Rules</h3>
+                    <div class="rule-item">
+                        <span class="rule-label">Banner Ads</span>
+                        <div class="rule-toggle" data-rule="banner"></div>
+                    </div>
+                    <div class="rule-item">
+                        <span class="rule-label">Sidebar Ads</span>
+                        <div class="rule-toggle" data-rule="sidebar"></div>
+                    </div>
+                    <div class="rule-item">
+                        <span class="rule-label">Popup Ads</span>
+                        <div class="rule-toggle" data-rule="popup"></div>
+                    </div>
+                    <div class="rule-item">
+                        <span class="rule-label">Text Ads</span>
+                        <div class="rule-toggle" data-rule="text"></div>
+                    </div>
+                    <div class="rule-item">
+                        <span class="rule-label">Video Ads</span>
+                        <div class="rule-toggle" data-rule="video"></div>
+                    </div>
+                    <div class="rule-item">
+                        <span class="rule-label">Floating Ads</span>
+                        <div class="rule-toggle" data-rule="floating"></div>
+                    </div>
+                </div>
+
+                <div class="stats-section">
+                    <h3>📊 Statistics</h3>
+                    <div class="stat-item">
+                        <span>Total Ads:</span>
+                        <span class="stat-value" id="totalAds">6</span>
+                    </div>
+                    <div class="stat-item">
+                        <span>Blocked:</span>
+                        <span class="stat-value" id="blockedAds">0</span>
+                    </div>
+                    <div class="stat-item">
+                        <span>Visible:</span>
+                        <span class="stat-value" id="visibleAds">6</span>
+                    </div>
+                    <div class="stat-item">
+                        <span>Block Rate:</span>
+                        <span class="stat-value" id="blockRate">0%</span>
+                    </div>
+                </div>
+
+                <div class="performance-meter">
+                    <h3>⚡ Performance Impact</h3>
+                    <div class="stat-item">
+                        <span>Load Time:</span>
+                        <span class="stat-value" id="loadTime">2.4s</span>
+                    </div>
+                    <div class="meter-bar">
+                        <div class="meter-fill" id="performanceFill" style="width: 40%"></div>
+                    </div>
+                    <small>Lower is better</small>
+                </div>
+
+                <button class="reset-btn" onclick="resetAllRules()">
+                    🔄 Reset All Rules
+                </button>
+            </div>
+
+            <div class="test-site">
+                <div class="site-header">
+                    <h2>📰 Sample News Website</h2>
+                    <p>Observe how different ad patterns behave with blocking rules</p>
+                </div>
+
+                <div class="site-content">
+                    <!-- Banner Ad -->
+                    <div class="banner-ad ad-element" data-type="banner">
+                        🎯 BANNER ADVERTISEMENT - Click Here for Deals!
+                    </div>
+
+                    <!-- Content with Sidebar Ad -->
+                    <div class="sidebar-ad ad-element" data-type="sidebar">
+                        📱 SIDEBAR AD<br>Special Offers
+                    </div>
+
+                    <div class="content-text">
+                        <h3>Breaking: Revolutionary Ad Blocking Technology Transforms Web Experience</h3>
+                        <p>In a groundbreaking development that's reshaping the digital landscape, advanced ad blocking technology is providing users with unprecedented control over their browsing experience. This innovative approach allows for granular control over different types of advertisements, from traditional banner ads to sophisticated video content.</p>
+                    </div>
+
+                    <!-- Text Ad -->
+                    <div class="text-ad ad-element" data-type="text">
+                        💰 <strong>Sponsored Content:</strong> Discover amazing deals on the latest tech gadgets. Limited time offers available now! Click to learn more about exclusive discounts.
+                    </div>
+
+                    <div class="content-text">
+                        <p>The technology demonstrates remarkable precision in identifying and handling various ad formats. Users can selectively enable or disable specific types of advertisements, creating a customized browsing environment that balances content consumption with user preferences.</p>
+                        
+                        <p>Industry experts predict this level of control will become standard across all major browsers, fundamentally changing how content creators and advertisers approach digital marketing strategies.</p>
+                    </div>
+
+                    <!-- Video Ad -->
+                    <div class="video-ad ad-element" data-type="video">
+                        📹 VIDEO ADVERTISEMENT
+                        <div style="font-size: 0.8rem; margin-top: 10px;">
+                            Premium Content - 30s
+                        </div>
+                    </div>
+
+                    <div class="content-text">
+                        <p>The implications extend beyond simple ad blocking. This technology represents a new paradigm in user agency and digital rights, empowering individuals to curate their online experience according to personal preferences and needs.</p>
+                        
+                        <p>Furthermore, the sophisticated analytics provide real-time insights into blocking effectiveness, performance impact, and user behavior patterns, making it an invaluable tool for both end-users and developers.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Popup Ad -->
+        <div class="popup-ad ad-element" data-type="popup" style="display: none;">
+            <button class="popup-close" onclick="closePopup()">×</button>
+            <div>
+                🚀 SPECIAL POPUP OFFER!<br>
+                <div style="font-size: 0.8rem; margin-top: 10px;">
+                    Limited Time Deal - Act Now!
+                </div>
+            </div>
+        </div>
+
+        <!-- Floating Ad -->
+        <div class="floating-ad ad-element" data-type="floating">
+            🎉 FLOATING AD<br>
+            <small>Hover to interact</small>
+        </div>
+
+        <!-- Blocked Indicator -->
+        <div class="blocked-indicator" id="blockedIndicator">
+            Ad Blocked!
+        </div>
+    </div>
+
+    <script>
+        // State management
+        const state = {
+            rules: {
+                banner: false,
+                sidebar: false,
+                popup: false,
+                text: false,
+                video: false,
+                floating: false
+            },
+            totalAds: 6,
+            blockedCount: 0,
+            performanceScore: 40
+        };
+
+        // Initialize the application
+        function init() {
+            setupEventListeners();
+            updateStats();
+            showRandomPopup();
+        }
+
+        // Setup event listeners for toggle switches
+        function setupEventListeners() {
+            document.querySelectorAll('.rule-toggle').forEach(toggle => {
+                toggle.addEventListener('click', function() {
+                    const rule = this.dataset.rule;
+                    toggleRule(rule);
+                });
+            });
+
+            // Add hover effects for floating ad
+            const floatingAd = document.querySelector('.floating-ad');
+            floatingAd.addEventListener('mouseenter', function() {
+                this.style.transform = 'scale(1.1)';
+            });
+            
+            floatingAd.addEventListener('mouseleave', function() {
+                this.style.transform = 'scale(1)';
+            });
+        }
+
+        // Toggle blocking rule
+        function toggleRule(ruleType) {
+            state.rules[ruleType] = !state.rules[ruleType];
+            
+            const toggle = document.querySelector(`[data-rule="${ruleType}"]`);
+            const ads = document.querySelectorAll(`[data-type="${ruleType}"]`);
+            
+            // Update toggle UI
+            toggle.classList.toggle('active', state.rules[ruleType]);
+            
+            // Apply/remove blocking
+            ads.forEach(ad => {
+                if (state.rules[ruleType]) {
+                    ad.classList.add('blocked');
+                    showBlockedIndicator();
+                } else {
+                    ad.classList.remove('blocked');
+                }
+            });
+            
+            updateStats();
+            updatePerformance();
+        }
+
+        // Update statistics
+        function updateStats() {
+            const blockedCount = Object.values(state.rules).filter(Boolean).length;
+            const visibleCount = state.totalAds - blockedCount;
+            const blockRate = Math.round((blockedCount / state.totalAds) * 100);
+            
+            document.getElementById('blockedAds').textContent = blockedCount;
+            document.getElementById('visibleAds').textContent = visibleCount;
+            document.getElementById('blockRate').textContent = `${blockRate}%`;
+            
+            state.blockedCount = blockedCount;
+        }
+
+        // Update performance metrics
+        function updatePerformance() {
+            const baseLoadTime = 2.4;
+            const improvement = state.blockedCount * 0.3;
+            const newLoadTime = Math.max(0.8, baseLoadTime - improvement);
+            const performanceScore = Math.min(100, 40 + (state.blockedCount * 10));
+            
+            document.getElementById('loadTime').textContent = `${newLoadTime.toFixed(1)}s`;
+            document.getElementById('performanceFill').style.width = `${100 - performanceScore}%`;
+            
+            // Update performance fill color based on performance
+            const fill = document.getElementById('performanceFill');
+            if (performanceScore > 80) {
+                fill.style.background = 'linear-gradient(90deg, #48bb78, #38a169)';
+            } else if (performanceScore > 60) {
+                fill.style.background = 'linear-gradient(90deg, #ed8936, #dd6b20)';
+            } else {
+                fill.style.background = 'linear-gradient(90deg, #e53e3e, #c53030)';
+            }
+        }
+
+        // Show blocked indicator
+        function showBlockedIndicator() {
+            const indicator = document.getElementById('blockedIndicator');
+            indicator.classList.add('show');
+            
+            setTimeout(() => {
+                indicator.classList.remove('show');
+            }, 2000);
+        }
+
+        // Reset all rules
+        function resetAllRules() {
+            Object.keys(state.rules).forEach(rule => {
+                if (state.rules[rule]) {
+                    toggleRule(rule);
+                }
+            });
+        }
+
+        // Show random popup ad
+        function showRandomPopup() {
+            setTimeout(() => {
+                const popup = document.querySelector('.popup-ad');
+                popup.style.display = 'flex';
+                
+                // Auto-close after 5 seconds if not manually closed
+                setTimeout(() => {
+                    if (popup.style.display !== 'none') {
+                        closePopup();
+                    }
+                }, 5000);
+            }, 3000);
+        }
+
+        // Close popup ad
+        function closePopup() {
+            const popup = document.querySelector('.popup-ad');
+            popup.style.display = 'none';
+        }
+
+        // Add some dynamic behavior
+        function addDynamicEffects() {
+            // Rotate through different ad content
+            const bannerAd = document.querySelector('[data-type="banner"]');
+            const bannerMessages = [
+                '🎯 BANNER ADVERTISEMENT - Click Here for Deals!',
+                '🔥 HOT DEALS - Limited Time Offers!',
+                '⭐ PREMIUM PRODUCTS - Shop Now!',
+                '🎁 EXCLUSIVE DEALS - Don\'t Miss Out!'
+            ];
+            
+            let messageIndex = 0;
+            setInterval(() => {
+                if (!bannerAd.classList.contains('blocked')) {
+                    messageIndex = (messageIndex + 1) % bannerMessages.length;
+                    bannerAd.textContent = bannerMessages[messageIndex];
+                }
+            }, 4000);
+
+            // Add subtle animations to visible ads
+            setInterval(() => {
+                document.querySelectorAll('.ad-element:not(.blocked)').forEach((ad, index) => {
+                    setTimeout(() => {
+                        ad.style.transform = 'scale(1.02)';
+                        setTimeout(() => {
+                            ad.style.transform = 'scale(1)';
+                        }, 200);
+                    }, index * 100);
+                });
+            }, 8000);
+        }
+
+        // Initialize the application when DOM is loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            init();
+            addDynamicEffects();
+        });
+
+        // Add keyboard shortcuts for power users
+        document.addEventListener('keydown', function(e) {
+            if (e.ctrlKey || e.metaKey) {
+                switch(e.key) {
+                    case '1': e.preventDefault(); toggleRule('banner'); break;
+                    case '2': e.preventDefault(); toggleRule('sidebar'); break;
+                    case '3': e.preventDefault(); toggleRule('popup'); break;
+                    case '4': e.preventDefault(); toggleRule('text'); break;
+                    case '5': e.preventDefault(); toggleRule('video'); break;
+                    case '6': e.preventDefault(); toggleRule('floating'); break;
+                    case 'r': e.preventDefault(); resetAllRules(); break;
+                }
+            }
+        });
+    </script>
+</body>
+</html>
