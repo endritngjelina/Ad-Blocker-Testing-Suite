@@ -1,0 +1,1121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ad Blocker Testing Suite - Professional Edition</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            display: grid;
+            grid-template-columns: 350px 1fr;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .control-panel {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-right: 1px solid rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            overflow-y: auto;
+            box-shadow: 2px 0 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .preview-area {
+            display: flex;
+            flex-direction: column;
+            background: #f8f9fa;
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #1a1a1a, #2d2d2d);
+            color: white;
+            padding: 15px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .logo::before {
+            content: "🛡️";
+            margin-right: 8px;
+            font-size: 20px;
+        }
+
+        .stats {
+            display: flex;
+            gap: 20px;
+            font-size: 12px;
+            color: #ccc;
+        }
+
+        .stat-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .stat-value {
+            font-size: 16px;
+            font-weight: bold;
+            color: #4CAF50;
+        }
+
+        .control-section {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(0, 0, 0, 0.05);
+        }
+
+        .section-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: #1a1a1a;
+            display: flex;
+            align-items: center;
+        }
+
+        .section-title::before {
+            content: "";
+            display: inline-block;
+            width: 4px;
+            height: 20px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            margin-right: 12px;
+            border-radius: 2px;
+        }
+
+        .rule-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid #eee;
+            transition: all 0.3s ease;
+        }
+
+        .rule-item:last-child {
+            border-bottom: none;
+        }
+
+        .rule-item:hover {
+            background: rgba(102, 126, 234, 0.05);
+            border-radius: 8px;
+            padding: 12px 10px;
+        }
+
+        .rule-info {
+            flex: 1;
+        }
+
+        .rule-name {
+            font-weight: 500;
+            margin-bottom: 4px;
+            font-size: 14px;
+        }
+
+        .rule-description {
+            font-size: 11px;
+            color: #666;
+            line-height: 1.3;
+        }
+
+        .toggle-switch {
+            position: relative;
+            width: 44px;
+            height: 24px;
+            background: #ddd;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .toggle-switch.active {
+            background: #4CAF50;
+        }
+
+        .toggle-switch::after {
+            content: "";
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 20px;
+            height: 20px;
+            background: white;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+        }
+
+        .toggle-switch.active::after {
+            transform: translateX(20px);
+        }
+
+        .website-frame {
+            flex: 1;
+            background: white;
+            margin: 20px;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+            border: 1px solid #e0e0e0;
+        }
+
+        .browser-bar {
+            background: #f5f5f5;
+            padding: 12px 15px;
+            border-bottom: 1px solid #ddd;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .browser-dots {
+            display: flex;
+            gap: 6px;
+        }
+
+        .dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        .dot.red { background: #ff5f57; }
+        .dot.yellow { background: #ffbd2e; }
+        .dot.green { background: #28ca42; }
+
+        .address-bar {
+            flex: 1;
+            margin-left: 15px;
+            padding: 6px 12px;
+            background: white;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 12px;
+            color: #666;
+        }
+
+        .fake-website {
+            padding: 20px;
+            background: white;
+            min-height: 500px;
+        }
+
+        /* Ad Elements */
+        .banner-ad {
+            width: 100%;
+            height: 120px;
+            background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 20px 0;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 18px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .banner-ad::before {
+            content: "";
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(255,255,255,0.2), transparent);
+            transform: rotate(45deg);
+            animation: shimmer 2s infinite;
+        }
+
+        @keyframes shimmer {
+            0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
+            100% { transform: translateX(100%) translateY(100%) rotate(45deg); }
+        }
+
+        .sidebar-ad {
+            width: 200px;
+            height: 300px;
+            background: linear-gradient(135deg, #a855f7, #3b82f6);
+            color: white;
+            padding: 20px;
+            margin: 20px;
+            border-radius: 8px;
+            float: right;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .popup-ad {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 400px;
+            height: 300px;
+            background: linear-gradient(135deg, #f093fb, #f5576c);
+            color: white;
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .popup-close {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            background: none;
+            border: none;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+        }
+
+        .text-ad {
+            background: rgba(255, 193, 7, 0.1);
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 0 8px 8px 0;
+            transition: all 0.3s ease;
+        }
+
+        .video-ad {
+            width: 100%;
+            height: 200px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 20px 0;
+            border-radius: 8px;
+            font-size: 16px;
+            position: relative;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .video-ad::after {
+            content: "▶";
+            position: absolute;
+            font-size: 40px;
+            opacity: 0.8;
+        }
+
+        .social-ad {
+            background: #4267B2;
+            color: white;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .tracking-pixel {
+            width: 1px;
+            height: 1px;
+            background: transparent;
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+
+        /* Blocked states */
+        .blocked {
+            opacity: 0;
+            pointer-events: none;
+            transform: scale(0.8);
+            filter: blur(2px);
+        }
+
+        .content {
+            line-height: 1.6;
+            color: #333;
+        }
+
+        .content h1 {
+            color: #1a1a1a;
+            margin-bottom: 20px;
+            font-size: 28px;
+        }
+
+        .content h2 {
+            color: #333;
+            margin: 25px 0 15px;
+            font-size: 20px;
+        }
+
+        .content p {
+            margin-bottom: 15px;
+            color: #555;
+        }
+
+        .performance-metrics {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .metric {
+            background: rgba(76, 175, 80, 0.1);
+            padding: 12px;
+            border-radius: 8px;
+            text-align: center;
+            border: 1px solid rgba(76, 175, 80, 0.2);
+        }
+
+        .metric-label {
+            font-size: 11px;
+            color: #666;
+            margin-bottom: 4px;
+        }
+
+        .metric-value {
+            font-size: 16px;
+            font-weight: bold;
+            color: #4CAF50;
+        }
+
+        .filter-search {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+            margin-bottom: 15px;
+            transition: all 0.3s ease;
+        }
+
+        .filter-search:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .preset-buttons {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+            margin-bottom: 15px;
+        }
+
+        .preset-btn {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 10px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .preset-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                grid-template-columns: 1fr;
+                grid-template-rows: auto 1fr;
+            }
+            
+            .control-panel {
+                max-height: 300px;
+            }
+        }
+
+        .blocked-indicator {
+            position: relative;
+        }
+
+        .blocked-indicator::after {
+            content: "🚫 BLOCKED";
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(244, 67, 54, 0.9);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            z-index: 10;
+            animation: blockPulse 1.5s ease-in-out infinite alternate;
+        }
+
+        @keyframes blockPulse {
+            from { opacity: 0.8; transform: translate(-50%, -50%) scale(1); }
+            to { opacity: 1; transform: translate(-50%, -50%) scale(1.05); }
+        }
+
+        .export-btn {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            width: 100%;
+            margin-top: 10px;
+            transition: all 0.3s ease;
+        }
+
+        .export-btn:hover {
+            background: #218838;
+            transform: translateY(-1px);
+        }
+
+        .rule-stats {
+            font-size: 10px;
+            color: #999;
+            margin-top: 4px;
+        }
+
+        .effectiveness-bar {
+            width: 100%;
+            height: 4px;
+            background: #eee;
+            border-radius: 2px;
+            overflow: hidden;
+            margin-top: 5px;
+        }
+
+        .effectiveness-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4CAF50, #8BC34A);
+            border-radius: 2px;
+            transition: width 0.5s ease;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="control-panel">
+            <div class="control-section">
+                <div class="section-title">Ad Blocker Testing Suite</div>
+                <input type="text" class="filter-search" placeholder="Search blocking rules..." id="searchRules">
+                <div class="preset-buttons">
+                    <button class="preset-btn" onclick="applyPreset('strict')">Strict Mode</button>
+                    <button class="preset-btn" onclick="applyPreset('balanced')">Balanced</button>
+                    <button class="preset-btn" onclick="applyPreset('minimal')">Minimal</button>
+                    <button class="preset-btn" onclick="applyPreset('off')">All Off</button>
+                </div>
+                <div class="performance-metrics">
+                    <div class="metric">
+                        <div class="metric-label">Blocked</div>
+                        <div class="metric-value" id="blockedCount">0</div>
+                    </div>
+                    <div class="metric">
+                        <div class="metric-label">Page Speed</div>
+                        <div class="metric-value" id="pageSpeed">100%</div>
+                    </div>
+                    <div class="metric">
+                        <div class="metric-label">Privacy</div>
+                        <div class="metric-value" id="privacyScore">A+</div>
+                    </div>
+                    <div class="metric">
+                        <div class="metric-label">Data Saved</div>
+                        <div class="metric-value" id="dataSaved">0MB</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="control-section">
+                <div class="section-title">Banner & Display Ads</div>
+                <div class="rule-item" data-rule="banner">
+                    <div class="rule-info">
+                        <div class="rule-name">Banner Advertisements</div>
+                        <div class="rule-description">Large promotional banners and display ads</div>
+                        <div class="rule-stats">Blocks: 156 patterns • Effectiveness: 94%</div>
+                        <div class="effectiveness-bar"><div class="effectiveness-fill" style="width: 94%"></div></div>
+                    </div>
+                    <div class="toggle-switch active" onclick="toggleRule('banner', this)"></div>
+                </div>
+                <div class="rule-item" data-rule="sidebar">
+                    <div class="rule-info">
+                        <div class="rule-name">Sidebar Ads</div>
+                        <div class="rule-description">Vertical advertisement panels</div>
+                        <div class="rule-stats">Blocks: 89 patterns • Effectiveness: 91%</div>
+                        <div class="effectiveness-bar"><div class="effectiveness-fill" style="width: 91%"></div></div>
+                    </div>
+                    <div class="toggle-switch active" onclick="toggleRule('sidebar', this)"></div>
+                </div>
+                <div class="rule-item" data-rule="text-ads">
+                    <div class="rule-info">
+                        <div class="rule-name">Text-Based Ads</div>
+                        <div class="rule-description">Inline text advertisements and sponsored content</div>
+                        <div class="rule-stats">Blocks: 234 patterns • Effectiveness: 87%</div>
+                        <div class="effectiveness-bar"><div class="effectiveness-fill" style="width: 87%"></div></div>
+                    </div>
+                    <div class="toggle-switch active" onclick="toggleRule('text-ads', this)"></div>
+                </div>
+            </div>
+
+            <div class="control-section">
+                <div class="section-title">Intrusive Elements</div>
+                <div class="rule-item" data-rule="popup">
+                    <div class="rule-info">
+                        <div class="rule-name">Pop-up Ads</div>
+                        <div class="rule-description">Modal overlays and pop-up advertisements</div>
+                        <div class="rule-stats">Blocks: 67 patterns • Effectiveness: 98%</div>
+                        <div class="effectiveness-bar"><div class="effectiveness-fill" style="width: 98%"></div></div>
+                    </div>
+                    <div class="toggle-switch active" onclick="toggleRule('popup', this)"></div>
+                </div>
+                <div class="rule-item" data-rule="video-ads">
+                    <div class="rule-info">
+                        <div class="rule-name">Video Advertisements</div>
+                        <div class="rule-description">Auto-play and embedded video ads</div>
+                        <div class="rule-stats">Blocks: 45 patterns • Effectiveness: 92%</div>
+                        <div class="effectiveness-bar"><div class="effectiveness-fill" style="width: 92%"></div></div>
+                    </div>
+                    <div class="toggle-switch active" onclick="toggleRule('video-ads', this)"></div>
+                </div>
+            </div>
+
+            <div class="control-section">
+                <div class="section-title">Privacy & Tracking</div>
+                <div class="rule-item" data-rule="tracking">
+                    <div class="rule-info">
+                        <div class="rule-name">Tracking Pixels</div>
+                        <div class="rule-description">Invisible tracking and analytics beacons</div>
+                        <div class="rule-stats">Blocks: 1,234 patterns • Effectiveness: 96%</div>
+                        <div class="effectiveness-bar"><div class="effectiveness-fill" style="width: 96%"></div></div>
+                    </div>
+                    <div class="toggle-switch active" onclick="toggleRule('tracking', this)"></div>
+                </div>
+                <div class="rule-item" data-rule="social-widgets">
+                    <div class="rule-info">
+                        <div class="rule-name">Social Media Widgets</div>
+                        <div class="rule-description">Third-party social buttons and embeds</div>
+                        <div class="rule-stats">Blocks: 78 patterns • Effectiveness: 89%</div>
+                        <div class="effectiveness-bar"><div class="effectiveness-fill" style="width: 89%"></div></div>
+                    </div>
+                    <div class="toggle-switch active" onclick="toggleRule('social-widgets', this)"></div>
+                </div>
+            </div>
+
+            <button class="export-btn" onclick="exportRules()">Export Filter Rules</button>
+        </div>
+
+        <div class="preview-area">
+            <div class="header">
+                <div class="logo">AdBlock Testing Suite</div>
+                <div class="stats">
+                    <div class="stat-item">
+                        <div class="stat-value" id="totalBlocked">6</div>
+                        <div>Elements Blocked</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="loadTime">0.2s</div>
+                        <div>Load Time</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="bandwidth">2.1MB</div>
+                        <div>Data Saved</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="website-frame">
+                <div class="browser-bar">
+                    <div class="browser-dots">
+                        <div class="dot red"></div>
+                        <div class="dot yellow"></div>
+                        <div class="dot green"></div>
+                    </div>
+                    <div class="address-bar">https://example-news-site.com</div>
+                </div>
+
+                <div class="fake-website">
+                    <div class="content">
+                        <h1>Tech News Daily</h1>
+                        
+                        <div class="banner-ad blocked-indicator blocked" data-ad="banner">
+                            🎯 Premium Advertisement - Click Here!
+                        </div>
+
+                        <h2>Latest Technology Updates</h2>
+                        <p>Stay informed with the latest developments in technology, innovation, and digital transformation. Our comprehensive coverage brings you insights from industry leaders and emerging trends that shape our digital future.</p>
+
+                        <div class="sidebar-ad blocked-indicator blocked" data-ad="sidebar">
+                            <h3>Special Offer!</h3>
+                            <p>Get 50% off premium software tools</p>
+                            <button>Learn More</button>
+                        </div>
+
+                        <p>The rapid advancement of artificial intelligence and machine learning continues to revolutionize industries across the globe. From healthcare to finance, these technologies are creating unprecedented opportunities for innovation and efficiency.</p>
+
+                        <div class="text-ad blocked-indicator blocked" data-ad="text-ads">
+                            <strong>Sponsored:</strong> Discover the best cloud hosting solutions for your business. Enterprise-grade security and 99.9% uptime guaranteed.
+                        </div>
+
+                        <h2>Industry Analysis</h2>
+                        <p>Market analysts predict significant growth in the tech sector, with emerging technologies leading the charge. Companies investing in digital transformation are seeing remarkable returns on their technology investments.</p>
+
+                        <div class="video-ad blocked-indicator blocked" data-ad="video-ads">
+                            📺 Video Advertisement - "Revolutionary New Product Launch"
+                        </div>
+
+                        <p>As we look toward the future, the integration of IoT devices, edge computing, and 5G networks promises to create an interconnected ecosystem that will fundamentally change how we work and live.</p>
+
+                        <div class="social-ad blocked-indicator blocked" data-ad="social-widgets">
+                            <strong>Follow us on social media!</strong><br>
+                            Connect with thousands of tech enthusiasts and stay updated with our latest content.
+                        </div>
+
+                        <div class="tracking-pixel blocked-indicator blocked" data-ad="tracking"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="popup-ad blocked-indicator blocked" data-ad="popup" id="popupAd">
+        <button class="popup-close" onclick="closePopup()">&times;</button>
+        <h2>🎉 Congratulations!</h2>
+        <p>You've won a special discount!</p>
+        <button style="padding: 10px 20px; border: none; background: white; color: #f5576c; border-radius: 5px; margin-top: 15px;">Claim Now</button>
+    </div>
+
+    <script>
+        const rules = {
+            'banner': true,
+            'sidebar': true,
+            'popup': true,
+            'text-ads': true,
+            'video-ads': true,
+            'social-widgets': true,
+            'tracking': true
+        };
+
+        const adPatterns = {
+            'banner': ['.banner-ad', '[data-ad="banner"]'],
+            'sidebar': ['.sidebar-ad', '[data-ad="sidebar"]'],
+            'popup': ['.popup-ad', '[data-ad="popup"]'],
+            'text-ads': ['.text-ad', '[data-ad="text-ads"]'],
+            'video-ads': ['.video-ad', '[data-ad="video-ads"]'],
+            'social-widgets': ['.social-ad', '[data-ad="social-widgets"]'],
+            'tracking': ['.tracking-pixel', '[data-ad="tracking"]']
+        };
+
+        const performanceMetrics = {
+            blocked: 0,
+            loadTime: 0.8,
+            dataSaved: 0,
+            privacyScore: 'A+'
+        };
+
+        function toggleRule(ruleName, toggleElement) {
+            rules[ruleName] = !rules[ruleName];
+            toggleElement.classList.toggle('active');
+            
+            updateAdBlocking();
+            updateMetrics();
+            
+            // Visual feedback
+            setTimeout(() => {
+                updateStatistics();
+            }, 300);
+        }
+
+        function updateAdBlocking() {
+            Object.keys(rules).forEach(ruleName => {
+                const patterns = adPatterns[ruleName] || [];
+                patterns.forEach(pattern => {
+                    const elements = document.querySelectorAll(pattern);
+                    elements.forEach(element => {
+                        if (rules[ruleName]) {
+                            element.classList.add('blocked');
+                            element.classList.add('blocked-indicator');
+                        } else {
+                            element.classList.remove('blocked');
+                            element.classList.remove('blocked-indicator');
+                        }
+                    });
+                });
+            });
+        }
+
+        function updateMetrics() {
+            const blockedCount = Object.values(rules).filter(Boolean).length;
+            const totalRules = Object.keys(rules).length;
+            
+            performanceMetrics.blocked = blockedCount;
+            performanceMetrics.loadTime = Math.max(0.1, 0.8 - (blockedCount * 0.1));
+            performanceMetrics.dataSaved = blockedCount * 0.35;
+            
+            // Update privacy score based on tracking and privacy rules
+            const privacyRules = ['tracking', 'social-widgets', 'popup'];
+            const activePrivacyRules = privacyRules.filter(rule => rules[rule]).length;
+            const privacyScores = ['F', 'D', 'C', 'B', 'A', 'A+'];
+            performanceMetrics.privacyScore = privacyScores[Math.min(activePrivacyRules + 2, 5)];
+            
+            document.getElementById('blockedCount').textContent = blockedCount;
+            document.getElementById('pageSpeed').textContent = Math.round((performanceMetrics.loadTime / 0.8) * 100) + '%';
+            document.getElementById('privacyScore').textContent = performanceMetrics.privacyScore;
+            document.getElementById('dataSaved').textContent = performanceMetrics.dataSaved.toFixed(1) + 'MB';
+        }
+
+        function updateStatistics() {
+            const totalBlocked = document.querySelectorAll('.blocked').length;
+            const loadTime = (0.2 + (totalBlocked * 0.05)).toFixed(1);
+            const bandwidth = (2.1 + (totalBlocked * 0.3)).toFixed(1);
+            
+            document.getElementById('totalBlocked').textContent = Object.values(rules).filter(Boolean).length;
+            document.getElementById('loadTime').textContent = performanceMetrics.loadTime.toFixed(1) + 's';
+            document.getElementById('bandwidth').textContent = performanceMetrics.dataSaved.toFixed(1) + 'MB';
+        }
+
+        function applyPreset(presetName) {
+            const presets = {
+                'strict': { 'banner': true, 'sidebar': true, 'popup': true, 'text-ads': true, 'video-ads': true, 'social-widgets': true, 'tracking': true },
+                'balanced': { 'banner': true, 'sidebar': false, 'popup': true, 'text-ads': false, 'video-ads': true, 'social-widgets': true, 'tracking': true },
+                'minimal': { 'banner': false, 'sidebar': false, 'popup': true, 'text-ads': false, 'video-ads': false, 'social-widgets': false, 'tracking': true },
+                'off': { 'banner': false, 'sidebar': false, 'popup': false, 'text-ads': false, 'video-ads': false, 'social-widgets': false, 'tracking': false }
+            };
+
+            const preset = presets[presetName];
+            if (preset) {
+                Object.keys(preset).forEach(ruleName => {
+                    rules[ruleName] = preset[ruleName];
+                    const toggleElement = document.querySelector(`[data-rule="${ruleName}"] .toggle-switch`);
+                    if (toggleElement) {
+                        if (preset[ruleName]) {
+                            toggleElement.classList.add('active');
+                        } else {
+                            toggleElement.classList.remove('active');
+                        }
+                    }
+                });
+                
+                updateAdBlocking();
+                updateMetrics();
+                setTimeout(updateStatistics, 300);
+            }
+        }
+
+        function closePopup() {
+            document.getElementById('popupAd').style.display = 'none';
+        }
+
+        function exportRules() {
+            const activeRules = Object.keys(rules).filter(rule => rules[rule]);
+            const exportData = {
+                timestamp: new Date().toISOString(),
+                version: "1.0.0",
+                rules: activeRules,
+                patterns: {},
+                performance: performanceMetrics
+            };
+
+            activeRules.forEach(rule => {
+                exportData.patterns[rule] = adPatterns[rule];
+            });
+
+            const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `adblock-rules-${Date.now()}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+
+            // Show export success animation
+            const exportBtn = document.querySelector('.export-btn');
+            const originalText = exportBtn.textContent;
+            exportBtn.textContent = '✓ Rules Exported!';
+            exportBtn.style.background = '#28a745';
+            setTimeout(() => {
+                exportBtn.textContent = originalText;
+                exportBtn.style.background = '#28a745';
+            }, 2000);
+        }
+
+        function filterRules() {
+            const searchTerm = document.getElementById('searchRules').value.toLowerCase();
+            const ruleItems = document.querySelectorAll('.rule-item');
+            
+            ruleItems.forEach(item => {
+                const ruleName = item.querySelector('.rule-name').textContent.toLowerCase();
+                const ruleDesc = item.querySelector('.rule-description').textContent.toLowerCase();
+                
+                if (ruleName.includes(searchTerm) || ruleDesc.includes(searchTerm)) {
+                    item.style.display = 'flex';
+                } else {
+                    item.style.display = searchTerm === '' ? 'flex' : 'none';
+                }
+            });
+        }
+
+        // Advanced features
+        function simulateRealTimeBlocking() {
+            const elements = document.querySelectorAll('[data-ad]');
+            elements.forEach((element, index) => {
+                setTimeout(() => {
+                    if (element.classList.contains('blocked')) {
+                        element.style.transition = 'all 0.5s ease';
+                        element.style.opacity = '0';
+                        element.style.transform = 'scale(0.8)';
+                    }
+                }, index * 100);
+            });
+        }
+
+        function generateReport() {
+            const report = {
+                timestamp: new Date().toISOString(),
+                totalRules: Object.keys(rules).length,
+                activeRules: Object.values(rules).filter(Boolean).length,
+                blockedElements: document.querySelectorAll('.blocked').length,
+                performance: performanceMetrics,
+                recommendations: []
+            };
+
+            // Generate smart recommendations
+            if (!rules.tracking) {
+                report.recommendations.push("Enable tracking protection for better privacy");
+            }
+            if (!rules.popup) {
+                report.recommendations.push("Block pop-ups to improve user experience");
+            }
+            if (Object.values(rules).filter(Boolean).length < 3) {
+                report.recommendations.push("Consider enabling more rules for comprehensive protection");
+            }
+
+            return report;
+        }
+
+        function animateMetrics() {
+            const metrics = document.querySelectorAll('.metric-value');
+            metrics.forEach(metric => {
+                metric.style.transform = 'scale(1.1)';
+                metric.style.color = '#667eea';
+                setTimeout(() => {
+                    metric.style.transform = 'scale(1)';
+                    metric.style.color = '#4CAF50';
+                }, 200);
+            });
+        }
+
+        function initializeDemoMode() {
+            // Show popup initially for demo
+            setTimeout(() => {
+                if (!rules.popup) {
+                    document.getElementById('popupAd').style.display = 'flex';
+                }
+            }, 3000);
+
+            // Simulate dynamic ad loading
+            setInterval(() => {
+                const ads = document.querySelectorAll('[data-ad]');
+                ads.forEach(ad => {
+                    if (!ad.classList.contains('blocked')) {
+                        // Add subtle animation to show "active" ads
+                        ad.style.transform = 'scale(1.02)';
+                        setTimeout(() => {
+                            ad.style.transform = 'scale(1)';
+                        }, 300);
+                    }
+                });
+            }, 5000);
+        }
+
+        function handleAdvancedFiltering() {
+            const searchInput = document.getElementById('searchRules');
+            let searchTimeout;
+
+            searchInput.addEventListener('input', () => {
+                clearTimeout(searchTimeout);
+                searchTimeout = setTimeout(filterRules, 300);
+            });
+
+            // Advanced search with keyboard shortcuts
+            searchInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') {
+                    searchInput.value = '';
+                    filterRules();
+                }
+            });
+        }
+
+        function initializeResponsiveDesign() {
+            function checkScreenSize() {
+                const container = document.querySelector('.container');
+                if (window.innerWidth <= 768) {
+                    container.style.gridTemplateColumns = '1fr';
+                    container.style.gridTemplateRows = 'auto 1fr';
+                } else {
+                    container.style.gridTemplateColumns = '350px 1fr';
+                    container.style.gridTemplateRows = 'none';
+                }
+            }
+
+            window.addEventListener('resize', checkScreenSize);
+            checkScreenSize();
+        }
+
+        function addAccessibilityFeatures() {
+            // Add keyboard navigation
+            const toggles = document.querySelectorAll('.toggle-switch');
+            toggles.forEach(toggle => {
+                toggle.setAttribute('tabindex', '0');
+                toggle.setAttribute('role', 'switch');
+                toggle.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        toggle.click();
+                    }
+                });
+
+                // Update aria-checked
+                const updateAriaChecked = () => {
+                    toggle.setAttribute('aria-checked', toggle.classList.contains('active'));
+                };
+                updateAriaChecked();
+                
+                const observer = new MutationObserver(updateAriaChecked);
+                observer.observe(toggle, { attributes: true, attributeFilter: ['class'] });
+            });
+
+            // Add screen reader announcements
+            const announceChanges = (message) => {
+                const announcement = document.createElement('div');
+                announcement.setAttribute('aria-live', 'polite');
+                announcement.setAttribute('aria-atomic', 'true');
+                announcement.style.position = 'absolute';
+                announcement.style.left = '-10000px';
+                announcement.textContent = message;
+                document.body.appendChild(announcement);
+                setTimeout(() => document.body.removeChild(announcement), 1000);
+            };
+
+            // Override toggle function to include announcements
+            const originalToggleRule = window.toggleRule;
+            window.toggleRule = function(ruleName, toggleElement) {
+                originalToggleRule(ruleName, toggleElement);
+                const state = rules[ruleName] ? 'enabled' : 'disabled';
+                announceChanges(`${ruleName.replace('-', ' ')} rule ${state}`);
+            };
+        }
+
+        // Initialize everything when DOM loads
+        document.addEventListener('DOMContentLoaded', function() {
+            updateAdBlocking();
+            updateMetrics();
+            updateStatistics();
+            initializeDemoMode();
+            handleAdvancedFiltering();
+            initializeResponsiveDesign();
+            addAccessibilityFeatures();
+            
+            // Add smooth transitions
+            setTimeout(() => {
+                document.body.style.opacity = '1';
+                simulateRealTimeBlocking();
+            }, 100);
+
+            // Periodic metrics animation
+            setInterval(animateMetrics, 10000);
+        });
+
+        // Advanced performance monitoring
+        class PerformanceMonitor {
+            constructor() {
+                this.startTime = performance.now();
+                this.metrics = {
+                    domContentLoaded: 0,
+                    firstPaint: 0,
+                    firstContentfulPaint: 0
+                };
+                this.init();
+            }
+
+            init() {
+                // Monitor key performance metrics
+                if ('performance' in window) {
+                    window.addEventListener('load', () => {
+                        this.calculateMetrics();
+                    });
+                }
+            }
+
+            calculateMetrics() {
+                const navigation = performance.getEntriesByType('navigation')[0];
+                if (navigation) {
+                    this.metrics.domContentLoaded = navigation.domContentLoadedEventEnd - navigation.domContentLoadedEventStart;
+                }
+
+                // Simulate performance improvements based on blocked ads
+                const blockedCount = Object.values(rules).filter(Boolean).length;
+                const baseLoadTime = 1200; // Base load time in ms
+                const improvedLoadTime = Math.max(200, baseLoadTime - (blockedCount * 150));
+                
+                document.getElementById('loadTime').textContent = (improvedLoadTime / 1000).toFixed(1) + 's';
+            }
+        }
+
+        // Initialize performance monitoring
+        const perfMonitor = new PerformanceMonitor();
+
+        // Export additional utility functions for external use
+        window.AdBlockTester = {
+            getRules: () => ({ ...rules }),
+            getMetrics: () => ({ ...performanceMetrics }),
+            generateReport,
+            applyPreset,
+            exportRules
+        };
+
+    </script>
+</body>
+</html>
