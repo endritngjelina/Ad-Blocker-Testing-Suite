@@ -1,0 +1,1438 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ad Blocker Testing Suite - Professional Edition</title>
+    <style>
+        :root {
+            --primary-blue: #007AFF;
+            --secondary-blue: #5AC8FA;
+            --tertiary-blue: #30D5C8;
+            --dark-gray: #1C1C1E;
+            --medium-gray: #2C2C2E;
+            --light-gray: #F2F2F7;
+            --text-primary: #1D1D1F;
+            --text-secondary: #86868B;
+            --text-tertiary: #AFAFB4;
+            --success-green: #30D158;
+            --warning-orange: #FF9F0A;
+            --error-red: #FF453A;
+            --purple: #AF52DE;
+            --pink: #FF2D92;
+            --card-bg: rgba(255, 255, 255, 0.95);
+            --card-hover: rgba(255, 255, 255, 0.98);
+            --shadow-light: 0 2px 12px rgba(0, 0, 0, 0.08);
+            --shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+            --shadow-heavy: 0 16px 64px rgba(0, 0, 0, 0.16);
+            --blur-bg: rgba(255, 255, 255, 0.85);
+            --glass-border: rgba(255, 255, 255, 0.2);
+            --gradient-bg: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            --gradient-card: linear-gradient(145deg, rgba(255,255,255,0.95), rgba(255,255,255,0.85));
+            --border-radius: 16px;
+            --border-radius-small: 12px;
+            --border-radius-large: 24px;
+            --transition-fast: all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            --transition-smooth: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            --transition-bounce: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: var(--gradient-bg);
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(255, 119, 198, 0.3) 0%, transparent 50%),
+                radial-gradient(circle at 40% 40%, rgba(120, 219, 255, 0.2) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            backdrop-filter: blur(40px);
+            background: var(--gradient-card);
+            border-radius: var(--border-radius-large);
+            padding: 40px 30px;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--glass-border);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(45deg, transparent 30%, rgba(255,255,255,0.1) 50%, transparent 70%);
+            transform: translateX(-100%);
+            transition: transform 0.8s ease;
+        }
+
+        .header:hover::before {
+            transform: translateX(100%);
+        }
+
+        .header h1 {
+            font-size: 3rem;
+            font-weight: 800;
+            color: var(--text-primary);
+            margin-bottom: 16px;
+            background: linear-gradient(135deg, var(--primary-blue), var(--secondary-blue), var(--purple));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: titleGlow 3s ease-in-out infinite alternate;
+            text-shadow: 0 4px 20px rgba(0, 122, 255, 0.2);
+        }
+
+        @keyframes titleGlow {
+            0% { 
+                background: linear-gradient(135deg, var(--primary-blue), var(--secondary-blue), var(--purple));
+                -webkit-background-clip: text;
+                background-clip: text;
+            }
+            100% { 
+                background: linear-gradient(135deg, var(--purple), var(--pink), var(--tertiary-blue));
+                -webkit-background-clip: text;
+                background-clip: text;
+            }
+        }
+
+        .header p {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .control-panel {
+            background: var(--gradient-card);
+            backdrop-filter: blur(40px);
+            border-radius: var(--border-radius);
+            padding: 30px;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--glass-border);
+            height: fit-content;
+            position: sticky;
+            top: 20px;
+            transition: var(--transition-smooth);
+        }
+
+        .control-panel:hover {
+            box-shadow: var(--shadow-heavy);
+            transform: translateY(-2px);
+        }
+
+        .test-site {
+            background: var(--gradient-card);
+            backdrop-filter: blur(40px);
+            border-radius: var(--border-radius);
+            padding: 30px;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--glass-border);
+            min-height: 600px;
+            transition: var(--transition-smooth);
+        }
+
+        .test-site:hover {
+            box-shadow: var(--shadow-heavy);
+        }
+
+        .section-title {
+            font-size: 1.4rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .rule-group {
+            margin-bottom: 25px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: var(--border-radius-small);
+            overflow: hidden;
+            transition: var(--transition-smooth);
+            position: relative;
+        }
+
+        .rule-group::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%);
+            pointer-events: none;
+            opacity: 0;
+            transition: var(--transition-smooth);
+        }
+
+        .rule-group:hover::before {
+            opacity: 1;
+        }
+
+        .rule-group:hover {
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-light);
+        }
+
+        .rule-header {
+            background: linear-gradient(135deg, var(--primary-blue), var(--secondary-blue));
+            color: white;
+            padding: 20px;
+            font-weight: 700;
+            font-size: 1.1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .rule-header::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(45deg, transparent 30%, rgba(255,255,255,0.1) 50%, transparent 70%);
+            transform: translateX(-100%);
+            transition: transform 0.6s ease;
+        }
+
+        .rule-header:hover::after {
+            transform: translateX(100%);
+        }
+
+        .rule-item {
+            padding: 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: var(--transition-smooth);
+            position: relative;
+            backdrop-filter: blur(10px);
+        }
+
+        .rule-item::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            height: 100%;
+            width: 0;
+            background: linear-gradient(90deg, var(--primary-blue), var(--secondary-blue));
+            transition: var(--transition-smooth);
+            opacity: 0.1;
+        }
+
+        .rule-item:hover {
+            background-color: rgba(255, 255, 255, 0.08);
+            transform: translateX(4px);
+        }
+
+        .rule-item:hover::before {
+            width: 4px;
+        }
+
+        .rule-item:last-child {
+            border-bottom: none;
+        }
+
+        .rule-info {
+            flex: 1;
+        }
+
+        .rule-name {
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 6px;
+            font-size: 1.05rem;
+        }
+
+        .rule-description {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            line-height: 1.4;
+        }
+
+        .toggle-switch {
+            position: relative;
+            width: 60px;
+            height: 32px;
+            flex-shrink: 0;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, #d1d5db, #9ca3af);
+            transition: var(--transition-smooth);
+            border-radius: 32px;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 26px;
+            width: 26px;
+            left: 3px;
+            bottom: 3px;
+            background: linear-gradient(135deg, #ffffff, #f8fafc);
+            transition: var(--transition-bounce);
+            border-radius: 50%;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15), 0 1px 3px rgba(0,0,0,0.2);
+        }
+
+        input:checked + .slider {
+            background: linear-gradient(135deg, var(--primary-blue), var(--secondary-blue));
+            box-shadow: 0 0 20px rgba(0, 122, 255, 0.3);
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(28px);
+            box-shadow: 0 2px 12px rgba(0,122,255,0.4), 0 1px 3px rgba(0,0,0,0.2);
+        }
+
+        .slider:hover {
+            transform: scale(1.05);
+        }
+
+        .stats-panel {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: var(--gradient-card);
+            backdrop-filter: blur(40px);
+            border-radius: var(--border-radius);
+            padding: 25px 20px;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--glass-border);
+            text-align: center;
+            transition: var(--transition-bounce);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at center, rgba(255,255,255,0.1) 0%, transparent 70%);
+            opacity: 0;
+            transition: var(--transition-smooth);
+        }
+
+        .stat-card:hover {
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: var(--shadow-heavy);
+        }
+
+        .stat-card:hover::before {
+            opacity: 1;
+        }
+
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin-bottom: 12px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .stat-label {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            font-weight: 500;
+            letter-spacing: 0.5px;
+        }
+
+        .blocked {
+            color: var(--error-red);
+        }
+
+        .allowed {
+            color: var(--success-green);
+        }
+
+        .total {
+            color: var(--primary-blue);
+        }
+
+        /* Fake site styles */
+        .fake-site-header {
+            background: #333;
+            color: white;
+            padding: 15px 0;
+            margin-bottom: 20px;
+            border-radius: 8px;
+        }
+
+        .fake-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+
+        .nav-links {
+            display: flex;
+            list-style: none;
+            gap: 20px;
+        }
+
+        .nav-links a {
+            color: white;
+            text-decoration: none;
+            transition: color 0.2s ease;
+        }
+
+        .nav-links a:hover {
+            color: var(--secondary-blue);
+        }
+
+        .site-content {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 20px;
+        }
+
+        .main-content {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+        }
+
+        .sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .article {
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .article h2 {
+            color: var(--text-primary);
+            margin-bottom: 10px;
+        }
+
+        .article p {
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        /* Ad styles with different patterns */
+        .ad-banner {
+            background: linear-gradient(45deg, #ff6b6b, #feca57);
+            color: white;
+            padding: 20px;
+            text-align: center;
+            border-radius: 8px;
+            margin: 15px 0;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .ad-sidebar {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 15px;
+            text-align: center;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+        }
+
+        .ad-popup {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: linear-gradient(45deg, #ff9a56, #ffad56);
+            color: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            z-index: 1000;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .ad-popup::backdrop {
+            background: rgba(0,0,0,0.5);
+        }
+
+        .social-ad {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            padding: 12px;
+            border-radius: 6px;
+            margin: 10px 0;
+            font-size: 0.8rem;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .video-ad {
+            background: linear-gradient(45deg, #ff6b6b, #ee5a52);
+            color: white;
+            padding: 40px 20px;
+            text-align: center;
+            border-radius: 8px;
+            margin: 20px 0;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+
+        .blocked-element {
+            opacity: 0.2;
+            transform: scale(0.95);
+            filter: grayscale(1) blur(1px);
+            position: relative;
+            transition: var(--transition-smooth);
+            pointer-events: none;
+        }
+
+        .blocked-element::after {
+            content: "🚫 BLOCKED";
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: linear-gradient(135deg, var(--error-red), #ff6b6b);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            z-index: 10;
+            box-shadow: 0 4px 12px rgba(255, 59, 48, 0.3);
+            letter-spacing: 0.5px;
+            animation: blockPulse 2s infinite;
+        }
+
+        @keyframes blockPulse {
+            0%, 100% { 
+                opacity: 0.9;
+                transform: translate(-50%, -50%) scale(1);
+            }
+            50% { 
+                opacity: 1;
+                transform: translate(-50%, -50%) scale(1.05);
+            }
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .btn {
+            padding: 14px 28px;
+            border: none;
+            border-radius: var(--border-radius-small);
+            font-weight: 600;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: var(--transition-bounce);
+            position: relative;
+            overflow: hidden;
+            letter-spacing: 0.3px;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(45deg, transparent 30%, rgba(255,255,255,0.2) 50%, transparent 70%);
+            transform: translateX(-100%);
+            transition: transform 0.6s ease;
+        }
+
+        .btn:hover::before {
+            transform: translateX(100%);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary-blue), var(--secondary-blue));
+            color: white;
+            box-shadow: 0 4px 15px rgba(0, 122, 255, 0.3);
+        }
+
+        .btn-secondary {
+            background: var(--gradient-card);
+            backdrop-filter: blur(20px);
+            color: var(--text-primary);
+            border: 1px solid var(--glass-border);
+            box-shadow: var(--shadow-light);
+        }
+
+        .btn:hover {
+            transform: translateY(-3px) scale(1.02);
+        }
+
+        .btn-primary:hover {
+            box-shadow: 0 8px 25px rgba(0, 122, 255, 0.4);
+        }
+
+        .btn-secondary:hover {
+            box-shadow: var(--shadow);
+            background: var(--card-hover);
+        }
+
+        .performance-meter {
+            background: var(--gradient-card);
+            backdrop-filter: blur(20px);
+            border-radius: var(--border-radius-small);
+            padding: 20px;
+            margin-top: 20px;
+            border: 1px solid var(--glass-border);
+            transition: var(--transition-smooth);
+        }
+
+        .performance-meter:hover {
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-light);
+        }
+
+        .meter-bar {
+            width: 100%;
+            height: 12px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 6px;
+            overflow: hidden;
+            margin: 12px 0;
+            position: relative;
+        }
+
+        .meter-bar::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(45deg, transparent 30%, rgba(255,255,255,0.1) 50%, transparent 70%);
+            animation: shimmer 2s infinite;
+        }
+
+        @keyframes shimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        .meter-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--success-green), var(--secondary-blue), var(--purple));
+            transition: width 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            border-radius: 6px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .meter-fill::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            animation: progress-shine 1.5s ease-in-out infinite;
+        }
+
+        @keyframes progress-shine {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        @media (max-width: 768px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .stats-panel {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .site-content {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @media (max-width: 768px) {
+            .container {
+                padding: 16px;
+            }
+
+            .header {
+                padding: 25px 20px;
+                margin-bottom: 25px;
+            }
+
+            .header h1 {
+                font-size: 2.2rem;
+            }
+
+            .main-grid {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+
+            .control-panel {
+                position: relative;
+                top: 0;
+            }
+
+            .stats-panel {
+                display: grid;
+                grid-template-columns: repeat(2, 1fr);
+                gap: 15px;
+            }
+        }
+
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header fade-in">
+            <h1>Ad Blocker Testing Suite</h1>
+            <p>Professional-grade testing environment for ad blocking rules and patterns. Visualize, test, and optimize your content filtering strategies in real-time.</p>
+        </div>
+
+        <div class="stats-panel">
+            <div class="stat-card fade-in">
+                <div class="stat-number blocked" id="blockedCount">0</div>
+                <div class="stat-label">Blocked Elements</div>
+            </div>
+            <div class="stat-card fade-in">
+                <div class="stat-number allowed" id="allowedCount">0</div>
+                <div class="stat-label">Allowed Elements</div>
+            </div>
+            <div class="stat-card fade-in">
+                <div class="stat-number total" id="totalCount">0</div>
+                <div class="stat-label">Total Elements</div>
+            </div>
+            <div class="stat-card fade-in">
+                <div class="stat-number" id="efficiencyRate" style="color: var(--warning-orange);">0%</div>
+                <div class="stat-label">Block Efficiency</div>
+            </div>
+        </div>
+
+        <div class="main-grid">
+            <div class="control-panel fade-in">
+                <h2 class="section-title">🛡️ Blocking Rules</h2>
+                
+                <div class="rule-group">
+                    <div class="rule-header">
+                        <span>Banner Advertisements</span>
+                        <span id="bannerCount">0/3</span>
+                    </div>
+                    <div class="rule-item">
+                        <div class="rule-info">
+                            <div class="rule-name">Header Banners</div>
+                            <div class="rule-description">Block large banner ads in headers</div>
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="headerBanners" onchange="updateBlocking()">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <div class="rule-item">
+                        <div class="rule-info">
+                            <div class="rule-name">Inline Banners</div>
+                            <div class="rule-description">Block ads between content</div>
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="inlineBanners" onchange="updateBlocking()">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <div class="rule-item">
+                        <div class="rule-info">
+                            <div class="rule-name">Footer Banners</div>
+                            <div class="rule-description">Block bottom page advertisements</div>
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="footerBanners" onchange="updateBlocking()">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="rule-group">
+                    <div class="rule-header">
+                        <span>Sidebar & Widget Ads</span>
+                        <span id="sidebarCount">0/2</span>
+                    </div>
+                    <div class="rule-item">
+                        <div class="rule-info">
+                            <div class="rule-name">Sidebar Ads</div>
+                            <div class="rule-description">Block sidebar advertisements</div>
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="sidebarAds" onchange="updateBlocking()">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <div class="rule-item">
+                        <div class="rule-info">
+                            <div class="rule-name">Widget Promotions</div>
+                            <div class="rule-description">Block promotional widgets</div>
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="widgetAds" onchange="updateBlocking()">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="rule-group">
+                    <div class="rule-header">
+                        <span>Intrusive Elements</span>
+                        <span id="intrusiveCount">0/3</span>
+                    </div>
+                    <div class="rule-item">
+                        <div class="rule-info">
+                            <div class="rule-name">Pop-up Ads</div>
+                            <div class="rule-description">Block modal popup advertisements</div>
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="popupAds" onchange="updateBlocking()">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <div class="rule-item">
+                        <div class="rule-info">
+                            <div class="rule-name">Video Ads</div>
+                            <div class="rule-description">Block autoplay video ads</div>
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="videoAds" onchange="updateBlocking()">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <div class="rule-item">
+                        <div class="rule-info">
+                            <div class="rule-name">Social Media Ads</div>
+                            <div class="rule-description">Block social platform promotions</div>
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="socialAds" onchange="updateBlocking()">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="action-buttons">
+                    <button class="btn btn-primary" onclick="blockAll()">Block All</button>
+                    <button class="btn btn-secondary" onclick="clearAll()">Clear All</button>
+                </div>
+
+                <div class="performance-meter">
+                    <h4>Performance Impact</h4>
+                    <div class="meter-bar">
+                        <div class="meter-fill" id="performanceMeter" style="width: 0%"></div>
+                    </div>
+                    <small id="performanceText">No blocking rules active</small>
+                </div>
+            </div>
+
+            <div class="test-site fade-in">
+                <h2 class="section-title">🌐 Test Website</h2>
+                
+                <div class="fake-site-header">
+                    <nav class="fake-nav">
+                        <div class="logo">TechNews Pro</div>
+                        <ul class="nav-links">
+                            <li><a href="#" onclick="simulateClick('Home')">Home</a></li>
+                            <li><a href="#" onclick="simulateClick('News')">News</a></li>
+                            <li><a href="#" onclick="simulateClick('Reviews')">Reviews</a></li>
+                            <li><a href="#" onclick="simulateClick('Contact')">Contact</a></li>
+                        </ul>
+                    </nav>
+                </div>
+
+                <div class="ad-banner header-ad" data-ad-type="headerBanners">
+                    <h3>🎯 Premium Tech Deals - 50% OFF!</h3>
+                    <p>Don't miss out on exclusive technology offers</p>
+                </div>
+
+                <div class="site-content">
+                    <div class="main-content">
+                        <article class="article">
+                            <h2>Revolutionary AI Breakthrough Announced</h2>
+                            <p>Scientists at leading technology institutes have announced a groundbreaking advancement in artificial intelligence that could reshape how we interact with digital systems. The new neural architecture demonstrates unprecedented efficiency in processing complex data patterns.</p>
+                            
+                            <div class="ad-banner inline-ad" data-ad-type="inlineBanners">
+                                <strong>💻 Best Laptops 2024 - Compare Prices!</strong>
+                            </div>
+                            
+                            <p>The research team, led by renowned AI experts, has developed algorithms that can learn and adapt with minimal computational overhead. This breakthrough promises to make advanced AI more accessible to smaller organizations and individual developers.</p>
+                        </article>
+
+                        <div class="video-ad" data-ad-type="videoAds">
+                            <h3>📺 Watch: Tech Review Channel</h3>
+                            <p>Subscribe for the latest technology reviews and comparisons</p>
+                            <div style="margin-top: 10px;">▶️ Play Video Ad</div>
+                        </div>
+
+                        <article class="article">
+                            <h2>Quantum Computing Reaches New Milestone</h2>
+                            <p>A team of quantum physicists has successfully demonstrated quantum supremacy in a practical application, solving complex optimization problems that would take classical computers centuries to complete.</p>
+                        </article>
+                    </div>
+
+                    <div class="sidebar">
+                        <div class="ad-sidebar" data-ad-type="sidebarAds">
+                            <strong>🔥 Hot Tech Deals</strong><br>
+                            Up to 70% off on gadgets
+                        </div>
+
+                        <div class="ad-sidebar widget-ad" data-ad-type="widgetAds">
+                            <strong>📱 New Smartphone Alert</strong><br>
+                            Get notified about releases
+                        </div>
+
+                        <div class="social-ad" data-ad-type="socialAds">
+                            <strong>Follow us on Social Media!</strong><br>
+                            Join 1M+ tech enthusiasts
+                        </div>
+
+                        <div class="social-ad" data-ad-type="socialAds">
+                            <strong>💬 Tech Community Forum</strong><br>
+                            Discuss latest trends
+                        </div>
+                    </div>
+                </div>
+
+                <div class="ad-banner footer-ad" data-ad-type="footerBanners">
+                    <h3>🚀 Launch Your Tech Career Today!</h3>
+                    <p>Premium coding bootcamp - Transform your future</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Popup Ad -->
+    <div class="ad-popup" id="popupAd" data-ad-type="popupAds" style="display: none;">
+        <h3>🎉 Special Offer!</h3>
+        <p>Get 30% off on all tech courses</p>
+        <p>Limited time offer - Act now!</p>
+        <button class="btn btn-primary" onclick="closePopup()">Close</button>
+    </div>
+
+    <script>
+        let adElements = [];
+        let blockedCount = 0;
+        let totalCount = 0;
+
+        // Initialize the application
+        function init() {
+            // Find all ad elements and store them
+            adElements = document.querySelectorAll('[data-ad-type]');
+            totalCount = adElements.length;
+            updateStats();
+            
+            // Show popup after 3 seconds
+            setTimeout(() => {
+                document.getElementById('popupAd').style.display = 'block';
+            }, 3000);
+            
+            // Update performance meter initially
+            updatePerformanceMeter();
+        }
+
+        function updateBlocking() {
+            blockedCount = 0;
+            
+            // Reset all ads to visible state
+            adElements.forEach(ad => {
+                ad.classList.remove('blocked-element');
+            });
+
+            // Apply blocking rules
+            const rules = {
+                'headerBanners': document.getElementById('headerBanners').checked,
+                'inlineBanners': document.getElementById('inlineBanners').checked,
+                'footerBanners': document.getElementById('footerBanners').checked,
+                'sidebarAds': document.getElementById('sidebarAds').checked,
+                'widgetAds': document.getElementById('widgetAds').checked,
+                'popupAds': document.getElementById('popupAds').checked,
+                'videoAds': document.getElementById('videoAds').checked,
+                'socialAds': document.getElementById('socialAds').checked
+            };
+
+            // Apply blocking for each rule
+            Object.entries(rules).forEach(([ruleType, isBlocked]) => {
+                if (isBlocked) {
+                    const elements = document.querySelectorAll(`[data-ad-type="${ruleType}"]`);
+                    elements.forEach(el => {
+                        el.classList.add('blocked-element');
+                        blockedCount++;
+                    });
+                }
+            });
+
+            // Handle popup special case
+            if (rules.popupAds) {
+                document.getElementById('popupAd').style.display = 'none';
+            }
+
+            updateStats();
+            updateRuleCounts();
+            updatePerformanceMeter();
+        }
+
+        function updateStats() {
+            const allowedCount = totalCount - blockedCount;
+            const efficiency = totalCount > 0 ? Math.round((blockedCount / totalCount) * 100) : 0;
+
+            document.getElementById('blockedCount').textContent = blockedCount;
+            document.getElementById('allowedCount').textContent = allowedCount;
+            document.getElementById('totalCount').textContent = totalCount;
+            document.getElementById('efficiencyRate').textContent = efficiency + '%';
+        }
+
+        function updateRuleCounts() {
+            // Count blocked elements by category
+            const bannerTypes = ['headerBanners', 'inlineBanners', 'footerBanners'];
+            const sidebarTypes = ['sidebarAds', 'widgetAds'];
+            const intrusiveTypes = ['popupAds', 'videoAds', 'socialAds'];
+
+            const bannerBlocked = bannerTypes.filter(type => 
+                document.getElementById(type).checked).length;
+            const sidebarBlocked = sidebarTypes.filter(type => 
+                document.getElementById(type).checked).length;
+            const intrusiveBlocked = intrusiveTypes.filter(type => 
+                document.getElementById(type).checked).length;
+
+            document.getElementById('bannerCount').textContent = `${bannerBlocked}/3`;
+            document.getElementById('sidebarCount').textContent = `${sidebarBlocked}/2`;
+            document.getElementById('intrusiveCount').textContent = `${intrusiveBlocked}/3`;
+        }
+
+        function updatePerformanceMeter() {
+            const totalRules = 8;
+            const activeRules = document.querySelectorAll('input[type="checkbox"]:checked').length;
+            const percentage = (activeRules / totalRules) * 100;
+            
+            document.getElementById('performanceMeter').style.width = percentage + '%';
+            
+            let performanceText = 'No blocking rules active';
+            if (activeRules > 0 && activeRules <= 3) {
+                performanceText = 'Low performance impact';
+            } else if (activeRules <= 6) {
+                performanceText = 'Moderate performance impact';
+            } else if (activeRules > 6) {
+                performanceText = 'High performance impact';
+            }
+            
+            document.getElementById('performanceText').textContent = performanceText;
+        }
+
+        function blockAll() {
+            const checkboxes = document.querySelectorAll('input[type="checkbox"]');
+            checkboxes.forEach(cb => {
+                cb.checked = true;
+            });
+            updateBlocking();
+        }
+
+        function clearAll() {
+            const checkboxes = document.querySelectorAll('input[type="checkbox"]');
+            checkboxes.forEach(cb => {
+                cb.checked = false;
+            });
+            updateBlocking();
+        }
+
+        function closePopup() {
+            document.getElementById('popupAd').style.display = 'none';
+        }
+
+        function simulateClick(section) {
+            // Create a subtle feedback animation
+            const clickFeedback = document.createElement('div');
+            clickFeedback.style.cssText = `
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                background: rgba(0, 122, 255, 0.9);
+                color: white;
+                padding: 15px 30px;
+                border-radius: 8px;
+                z-index: 9999;
+                font-weight: 600;
+                pointer-events: none;
+            `;
+            clickFeedback.textContent = `Navigated to ${section}`;
+            document.body.appendChild(clickFeedback);
+            
+            setTimeout(() => {
+                clickFeedback.remove();
+            }, 1000);
+        }
+
+        // Advanced features for Apple-level polish
+        function addAdvancedFeatures() {
+            // Smooth scroll behavior
+            document.documentElement.style.scrollBehavior = 'smooth';
+            
+            // Add subtle parallax effect to header
+            window.addEventListener('scroll', () => {
+                const scrolled = window.pageYOffset;
+                const header = document.querySelector('.header');
+                if (header) {
+                    header.style.transform = `translateY(${scrolled * 0.1}px)`;
+                }
+            });
+
+            // Add keyboard shortcuts
+            document.addEventListener('keydown', (e) => {
+                if (e.ctrlKey || e.metaKey) {
+                    switch(e.key) {
+                        case 'a':
+                            e.preventDefault();
+                            blockAll();
+                            showToast('All rules enabled');
+                            break;
+                        case 'c':
+                            e.preventDefault();
+                            clearAll();
+                            showToast('All rules cleared');
+                            break;
+                        case 'r':
+                            e.preventDefault();
+                            generateReport();
+                            break;
+                    }
+                }
+            });
+        }
+
+        function showToast(message) {
+            const toast = document.createElement('div');
+            toast.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: rgba(0, 0, 0, 0.8);
+                color: white;
+                padding: 12px 20px;
+                border-radius: 8px;
+                z-index: 10000;
+                font-weight: 500;
+                opacity: 0;
+                transform: translateX(100px);
+                transition: all 0.3s ease;
+            `;
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.style.opacity = '1';
+                toast.style.transform = 'translateX(0)';
+            }, 100);
+            
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateX(100px)';
+                setTimeout(() => toast.remove(), 300);
+            }, 2000);
+        }
+
+        function generateReport() {
+            const activeRules = Array.from(document.querySelectorAll('input[type="checkbox"]:checked'))
+                .map(cb => cb.id);
+            const efficiency = Math.round((blockedCount / totalCount) * 100);
+            
+            const report = {
+                timestamp: new Date().toISOString(),
+                totalElements: totalCount,
+                blockedElements: blockedCount,
+                allowedElements: totalCount - blockedCount,
+                efficiency: efficiency + '%',
+                activeRules: activeRules,
+                performance: document.getElementById('performanceText').textContent
+            };
+            
+            console.log('Ad Blocker Test Report:', report);
+            showToast('Report generated - Check console');
+        }
+
+        // Advanced analytics tracking
+        function trackInteraction(action, rule = null) {
+            const interaction = {
+                timestamp: Date.now(),
+                action: action,
+                rule: rule,
+                currentBlockedCount: blockedCount,
+                efficiency: Math.round((blockedCount / totalCount) * 100)
+            };
+            
+            // In a real application, this would send data to analytics
+            console.log('Interaction tracked:', interaction);
+        }
+
+        // Enhanced toggle behavior with analytics
+        function enhancedToggle(checkboxId) {
+            const checkbox = document.getElementById(checkboxId);
+            const wasChecked = checkbox.checked;
+            
+            trackInteraction(wasChecked ? 'rule_enabled' : 'rule_disabled', checkboxId);
+            updateBlocking();
+        }
+
+        // Dynamic content injection for more realistic testing
+        function injectDynamicAds() {
+            const dynamicAdHtml = `
+                <div class="ad-banner dynamic-ad" data-ad-type="inlineBanners" 
+                     style="background: linear-gradient(45deg, #a8e6cf, #88d8a3); margin: 20px 0;">
+                    <h3>🌟 Dynamic Ad Content</h3>
+                    <p>This ad was injected dynamically to test real-world scenarios</p>
+                </div>
+            `;
+            
+            const mainContent = document.querySelector('.main-content');
+            if (mainContent) {
+                mainContent.insertAdjacentHTML('beforeend', dynamicAdHtml);
+                
+                // Update our tracking arrays
+                adElements = document.querySelectorAll('[data-ad-type]');
+                totalCount = adElements.length;
+                updateStats();
+                updateBlocking(); // Reapply current rules
+                
+                showToast('Dynamic ad injected');
+            }
+        }
+
+        // Performance monitoring
+        function monitorPerformance() {
+            const startTime = performance.now();
+            
+            return {
+                end: () => {
+                    const endTime = performance.now();
+                    const duration = endTime - startTime;
+                    console.log(`Operation took ${duration.toFixed(2)} milliseconds`);
+                    return duration;
+                }
+            };
+        }
+
+        // Advanced filtering with regex patterns
+        function applyAdvancedFiltering() {
+            const commonAdPatterns = [
+                /advertisement/i,
+                /sponsored/i,
+                /promotion/i,
+                /banner/i,
+                /popup/i
+            ];
+            
+            let advancedBlocked = 0;
+            
+            // Check all elements for ad-like patterns
+            document.querySelectorAll('*').forEach(element => {
+                const text = element.textContent || '';
+                const className = element.className || '';
+                const id = element.id || '';
+                
+                const hasAdPattern = commonAdPatterns.some(pattern => 
+                    pattern.test(text) || pattern.test(className) || pattern.test(id)
+                );
+                
+                if (hasAdPattern && !element.hasAttribute('data-ad-type')) {
+                    element.style.outline = '2px dashed #ff3b30';
+                    element.title = 'Detected as potential ad content';
+                    advancedBlocked++;
+                }
+            });
+            
+            if (advancedBlocked > 0) {
+                showToast(`Advanced filtering detected ${advancedBlocked} potential ads`);
+            }
+        }
+
+        // Export functionality for test results
+        function exportResults() {
+            const results = {
+                testDate: new Date().toLocaleString(),
+                configuration: {
+                    headerBanners: document.getElementById('headerBanners').checked,
+                    inlineBanners: document.getElementById('inlineBanners').checked,
+                    footerBanners: document.getElementById('footerBanners').checked,
+                    sidebarAds: document.getElementById('sidebarAds').checked,
+                    widgetAds: document.getElementById('widgetAds').checked,
+                    popupAds: document.getElementById('popupAds').checked,
+                    videoAds: document.getElementById('videoAds').checked,
+                    socialAds: document.getElementById('socialAds').checked
+                },
+                results: {
+                    totalElements: totalCount,
+                    blockedElements: blockedCount,
+                    allowedElements: totalCount - blockedCount,
+                    efficiency: Math.round((blockedCount / totalCount) * 100),
+                    performanceImpact: document.getElementById('performanceText').textContent
+                }
+            };
+            
+            const dataStr = JSON.stringify(results, null, 2);
+            const dataBlob = new Blob([dataStr], {type: 'application/json'});
+            
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(dataBlob);
+            link.download = 'adblocker-test-results.json';
+            link.click();
+            
+            showToast('Results exported successfully');
+        }
+
+        // Initialize everything when page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            init();
+            addAdvancedFeatures();
+            
+            // Add advanced control buttons
+            const advancedControls = document.createElement('div');
+            advancedControls.innerHTML = `
+                <div style="margin-top: 20px; display: flex; gap: 10px; flex-wrap: wrap;">
+                    <button class="btn btn-secondary" onclick="injectDynamicAds()" style="font-size: 0.8rem;">
+                        + Add Dynamic Ad
+                    </button>
+                    <button class="btn btn-secondary" onclick="applyAdvancedFiltering()" style="font-size: 0.8rem;">
+                        🔍 Advanced Scan
+                    </button>
+                    <button class="btn btn-secondary" onclick="exportResults()" style="font-size: 0.8rem;">
+                        📊 Export Results
+                    </button>
+                    <button class="btn btn-secondary" onclick="generateReport()" style="font-size: 0.8rem;">
+                        📋 Generate Report
+                    </button>
+                </div>
+                <div style="margin-top: 15px; padding: 10px; background: #f8f9fa; border-radius: 6px; font-size: 0.8rem;">
+                    <strong>Keyboard Shortcuts:</strong><br>
+                    Cmd/Ctrl + A: Block All | Cmd/Ctrl + C: Clear All | Cmd/Ctrl + R: Generate Report
+                </div>
+            `;
+            
+            document.querySelector('.control-panel').appendChild(advancedControls);
+            
+            // Add real-time monitoring
+            setInterval(() => {
+                const currentBlocked = document.querySelectorAll('.blocked-element').length;
+                if (currentBlocked !== blockedCount) {
+                    console.log('Discrepancy detected in blocking count');
+                }
+            }, 5000);
+        });
+
+        // Professional error handling
+        window.addEventListener('error', (e) => {
+            console.error('Application error:', e.error);
+            showToast('An error occurred - Check console for details');
+        });
+
+        // Memory usage monitoring (for performance optimization)
+        function checkMemoryUsage() {
+            if (performance.memory) {
+                const memory = performance.memory;
+                console.log('Memory usage:', {
+                    used: Math.round(memory.usedJSHeapSize / 1048576) + ' MB',
+                    total: Math.round(memory.totalJSHeapSize / 1048576) + ' MB',
+                    limit: Math.round(memory.jsHeapSizeLimit / 1048576) + ' MB'
+                });
+            }
+        }
+
+        // Call memory check periodically in development
+        if (window.location.hostname === 'localhost') {
+            setInterval(checkMemoryUsage, 30000);
+        }
+    </script>
+</body>
+</html>
